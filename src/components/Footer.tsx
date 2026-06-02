@@ -37,9 +37,9 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link to="/#contact" className="hover:text-sand transition-colors">
+                <a href="/#contact" className="hover:text-sand transition-colors">
                   Contact
-                </Link>
+                </a>
               </li>
             </ul>
           </div>

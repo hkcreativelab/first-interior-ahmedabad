@@ -121,9 +121,7 @@ export function ReelsSection({
               <div className="space-y-4 p-6 sm:p-8">
                 <div>
                   <h3 className="text-3xl font-semibold tracking-tight text-cream">{reel.title}</h3>
-                  <p className="mt-2 text-base leading-relaxed text-cream/90">
-                    {reel.description}
-                  </p>
+                  <p className="mt-2 text-base leading-relaxed text-cream/90">{reel.description}</p>
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2">

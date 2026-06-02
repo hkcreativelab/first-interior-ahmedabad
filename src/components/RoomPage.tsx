@@ -135,7 +135,9 @@ export function RoomPage({ eyebrow, title, italic, intro, hero, options, ambient
                   <h3 className="mt-2 font-display text-2xl font-light leading-tight sm:mt-3 sm:text-3xl md:text-5xl">
                     {o.title}
                   </h3>
-                  <p className="mt-4 text-base text-muted-foreground sm:mt-5 sm:text-lg">{o.blurb}</p>
+                  <p className="mt-4 text-base text-muted-foreground sm:mt-5 sm:text-lg">
+                    {o.blurb}
+                  </p>
 
                   <ul className="mt-4 space-y-2 text-sm text-ink/80 sm:mt-6 sm:text-base">
                     {o.features.map((f) => (
@@ -202,7 +204,9 @@ export function RoomPage({ eyebrow, title, italic, intro, hero, options, ambient
               rel="noopener noreferrer"
               className="flex flex-col items-start justify-between gap-3 rounded-full bg-sand px-4 py-3 text-ink transition-all hover:bg-cream sm:flex-row sm:gap-6 sm:px-6 sm:py-4 sm:items-center"
             >
-              <span className="text-xs uppercase tracking-[0.3em] sm:text-sm">WhatsApp the owner</span>
+              <span className="text-xs uppercase tracking-[0.3em] sm:text-sm">
+                WhatsApp the owner
+              </span>
               <span className="font-display text-lg sm:text-xl">{OWNER_DISPLAY}</span>
             </a>
             <a

@@ -228,10 +228,12 @@ export function Why() {
             className="rounded-[2rem] border border-border bg-card p-12 shadow-sm"
           >
             <p className="text-sm uppercase tracking-[0.3em] text-forest/70">Founder-led craft</p>
-            <h3 className="mt-6 text-5xl font-display text-ink">Every home is owned, not outsourced.</h3>
+            <h3 className="mt-6 text-5xl font-display text-ink">
+              Every home is owned, not outsourced.
+            </h3>
             <p className="mt-6 text-base leading-relaxed text-muted-foreground">
-              We manage every phase from concept and procurement to the final handover, so the
-              same team that designs your space also delivers it.
+              We manage every phase from concept and procurement to the final handover, so the same
+              team that designs your space also delivers it.
             </p>
             <div className="mt-10 space-y-4 text-sm text-ink/70">
               <p>Founder-led design and delivery.</p>
@@ -347,7 +349,10 @@ export function Contact() {
           </div>
         </div>
 
-        <form onSubmit={(e) => e.preventDefault()} className="space-y-6 rounded-[2rem] border border-border bg-ink/5 p-8 shadow-sm">
+        <form
+          onSubmit={(e) => e.preventDefault()}
+          className="space-y-6 rounded-[2rem] border border-border bg-ink/5 p-8 shadow-sm"
+        >
           {[
             { l: "Your name", t: "text", p: "Jane Doe" },
             { l: "Email", t: "email", p: "jane@home.com" },

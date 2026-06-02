@@ -153,9 +153,11 @@ function OwnerPortalPage() {
         <div className="absolute inset-0 bg-ink/10" />
         <div className="relative z-10 w-full max-w-6xl rounded-lg sm:rounded-2xl md:rounded-[2rem] border border-border bg-cream/95 p-4 shadow-[0_35px_120px_rgba(15,23,42,0.18)] backdrop-blur-xl sm:p-6 md:p-10 overflow-hidden">
           <div className="grid gap-6 sm:gap-8 md:gap-10 lg:grid-cols-[0.95fr_1.05fr]">
-                <div className="rounded-lg sm:rounded-2xl md:rounded-[1.75rem] border border-border bg-forest px-4 py-6 sm:px-6 sm:py-8 md:px-8 md:py-10 text-cream shadow-[0_20px_80px_rgba(15,23,42,0.18)]">
+            <div className="rounded-lg sm:rounded-2xl md:rounded-[1.75rem] border border-border bg-forest px-4 py-6 sm:px-6 sm:py-8 md:px-8 md:py-10 text-cream shadow-[0_20px_80px_rgba(15,23,42,0.18)]">
               <p className="text-xs uppercase tracking-[0.35em] text-sand/80">Owner portal</p>
-              <h1 className="mt-3 sm:mt-4 md:mt-6 text-2xl sm:text-3xl md:text-4xl font-semibold leading-tight">Secure admin access</h1>
+              <h1 className="mt-3 sm:mt-4 md:mt-6 text-2xl sm:text-3xl md:text-4xl font-semibold leading-tight">
+                Secure admin access
+              </h1>
               <p className="mt-3 sm:mt-4 md:mt-5 text-xs sm:text-sm leading-relaxed text-sand/80">
                 This portal is reserved for the First Interiors team. Enter your passcode to manage
                 the public reels collection and update the owner access code.
@@ -179,16 +181,17 @@ function OwnerPortalPage() {
                       🔒
                     </span>
                     <div>
-                      <p className="text-xs uppercase tracking-[0.3em] text-ink/60">
-                        Owner login
-                      </p>
+                      <p className="text-xs uppercase tracking-[0.3em] text-ink/60">Owner login</p>
                       <p className="text-base sm:text-lg font-semibold text-ink">
                         Enter passcode to unlock the portal.
                       </p>
                     </div>
                   </div>
 
-                  <form onSubmit={handleLogin} className="mt-6 sm:mt-7 md:mt-8 space-y-4 sm:space-y-5">
+                  <form
+                    onSubmit={handleLogin}
+                    className="mt-6 sm:mt-7 md:mt-8 space-y-4 sm:space-y-5"
+                  >
                     <label className="block text-xs sm:text-sm font-medium text-ink">
                       Passcode
                       <input
@@ -213,7 +216,9 @@ function OwnerPortalPage() {
                         <p className="text-xs uppercase tracking-[0.35em] text-ink/60">
                           Reel management
                         </p>
-                        <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-ink">Add new reel</h2>
+                        <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-ink">
+                          Add new reel
+                        </h2>
                       </div>
                       <button
                         type="button"
@@ -229,7 +234,10 @@ function OwnerPortalPage() {
                       </button>
                     </div>
 
-                    <form onSubmit={handleAddReel} className="grid gap-4 sm:gap-5 mt-6 sm:mt-7 md:mt-8">
+                    <form
+                      onSubmit={handleAddReel}
+                      className="grid gap-4 sm:gap-5 mt-6 sm:mt-7 md:mt-8"
+                    >
                       <label className="block text-xs sm:text-sm text-ink">
                         Title
                         <input
@@ -278,9 +286,7 @@ function OwnerPortalPage() {
 
                       {formState.thumbnail ? (
                         <div className="rounded-lg sm:rounded-2xl md:rounded-3xl border border-border bg-cream p-3 sm:p-4">
-                          <p className="text-xs uppercase tracking-[0.35em] text-ink/60">
-                            Preview
-                          </p>
+                          <p className="text-xs uppercase tracking-[0.35em] text-ink/60">Preview</p>
                           <img
                             src={formState.thumbnail}
                             alt="Reel poster preview"
@@ -301,7 +307,9 @@ function OwnerPortalPage() {
                   <div className="rounded-lg sm:rounded-2xl md:rounded-[1.75rem] border border-border bg-cream p-4 sm:p-6 md:p-8 shadow-sm md:p-10 overflow-hidden">
                     <div className="space-y-5 sm:space-y-6 md:space-y-8 max-w-full">
                       <div className="rounded-lg sm:rounded-2xl md:rounded-3xl bg-cream/80 p-4 sm:p-5 md:p-6 text-ink">
-                        <p className="font-semibold text-sm sm:text-base text-ink">Live reel management</p>
+                        <p className="font-semibold text-sm sm:text-base text-ink">
+                          Live reel management
+                        </p>
                         <p className="mt-2 sm:mt-3 text-xs sm:text-sm text-ink/70">
                           Delete outdated entries, review the current reel count, and update the
                           portal passcode from one place.
@@ -312,7 +320,9 @@ function OwnerPortalPage() {
                         <p className="text-xs uppercase tracking-[0.35em] text-ink/60">
                           Reel count
                         </p>
-                        <p className="mt-3 sm:mt-4 text-2xl sm:text-3xl md:text-4xl font-semibold text-ink">{reels.length}</p>
+                        <p className="mt-3 sm:mt-4 text-2xl sm:text-3xl md:text-4xl font-semibold text-ink">
+                          {reels.length}
+                        </p>
                       </div>
 
                       <div className="rounded-lg sm:rounded-2xl md:rounded-3xl border border-border bg-cream p-4 sm:p-5 md:p-6 overflow-hidden">
@@ -335,8 +345,12 @@ function OwnerPortalPage() {
                                 className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-lg sm:rounded-2xl md:rounded-3xl border border-border bg-cream/50 p-3 sm:p-4 md:p-5 min-w-0"
                               >
                                 <div className="min-w-0 flex-1">
-                                  <p className="font-semibold text-xs sm:text-sm text-ink truncate">{reel.title}</p>
-                                  <p className="text-xs sm:text-sm text-ink/70 truncate mt-1">{reel.url}</p>
+                                  <p className="font-semibold text-xs sm:text-sm text-ink truncate">
+                                    {reel.title}
+                                  </p>
+                                  <p className="text-xs sm:text-sm text-ink/70 truncate mt-1">
+                                    {reel.url}
+                                  </p>
                                 </div>
                                 <button
                                   type="button"
@@ -357,13 +371,18 @@ function OwnerPortalPage() {
 
                       <div className="space-y-3 sm:space-y-4 md:space-y-5">
                         <div>
-                          <p className="text-xs sm:text-sm font-semibold text-ink">Change passcode</p>
+                          <p className="text-xs sm:text-sm font-semibold text-ink">
+                            Change passcode
+                          </p>
                           <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-ink/70">
                             Update the password for owner access.
                           </p>
                         </div>
 
-                        <form onSubmit={handleChangePasscode} className="grid gap-3 sm:gap-4 md:gap-5">
+                        <form
+                          onSubmit={handleChangePasscode}
+                          className="grid gap-3 sm:gap-4 md:gap-5"
+                        >
                           <input
                             type="password"
                             value={currentPasscode}

@@ -55,7 +55,9 @@ export function Nav() {
             <span className="h-1 w-1 rounded-full bg-current sm:h-1.5 sm:w-1.5" />
           </span>
           <div className="leading-tight">
-            <span className="block font-display text-sm tracking-wide sm:text-base">First Interiors</span>
+            <span className="block font-display text-sm tracking-wide sm:text-base">
+              First Interiors
+            </span>
             <span className="block text-[7px] uppercase tracking-[0.15em] opacity-70 sm:text-[8px] sm:tracking-[0.2em]">
               Rejuvenate your ideas
             </span>
