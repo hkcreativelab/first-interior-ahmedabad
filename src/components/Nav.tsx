@@ -46,7 +46,7 @@ export function Nav() {
         scrolled ? "bg-cream/85 backdrop-blur-md border-b border-border" : "bg-transparent"
       }`}
     >
-      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4 md:py-4">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4 md:py-4 overflow-x-hidden">
         <Link
           to="/"
           className={`flex items-center gap-2 ${scrolled ? "text-forest" : "text-cream"}`}
