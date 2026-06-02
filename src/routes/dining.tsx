@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { RoomPage } from "@/components/RoomPage";
 import diningClassic from "@/assets/dining.webp";
 import diningElegant from "@/assets/dining-elegant.webp";
-import diningModern from "@/assets/dining-modern.webp";
+// import diningModern from "@/assets/dining-modern.webp";
 import livingRoom1 from "@/assets/living room 1.jpeg";
 import dining1 from "@/assets/dining 1.png";
 

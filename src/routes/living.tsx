@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { RoomPage } from "@/components/RoomPage";
-import livingWarm from "@/assets/living-warm.webp";
+// import livingWarm from "@/assets/living-warm.webp";
 import livingMinimal from "@/assets/living-minimal.webp";
 import livingLuxe from "@/assets/living-luxe.webp";
-import livingRoom from "@/assets/living-room.webp";
+// import livingRoom from "@/assets/living-room.webp";
 import livingRoomJpg from "@/assets/living-room.jpg";
 import livingRoom1 from "@/assets/living room 1.jpeg";
 import livingRoom2 from "@/assets/living room 2.png";

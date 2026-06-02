@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { RoomPage } from "@/components/RoomPage";
-import kitchenClassic from "@/assets/kitchen.webp";
-import kitchenModern from "@/assets/kitchen-modern.webp";
+// import kitchenClassic from "@/assets/kitchen.webp";
+// import kitchenModern from "@/assets/kitchen-modern.webp";
 import kitchenLuxury from "@/assets/kitchen-luxury.webp";
 import kitchen1 from "@/assets/kitchen 1.jpg";
 import kitchen2 from "@/assets/kitchen 2.jpg";
