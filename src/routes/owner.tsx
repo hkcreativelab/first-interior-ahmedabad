@@ -91,8 +91,9 @@ function OwnerPortalPage() {
 
     const reader = new FileReader();
     reader.onload = () => {
-      if (typeof reader.result === "string") {
-        setFormState((prev) => ({ ...prev, thumbnail: reader.result }));
+      const result = reader.result;
+      if (typeof result === "string") {
+        setFormState((prev) => ({ ...prev, thumbnail: result }));
       }
     };
     reader.readAsDataURL(file);
