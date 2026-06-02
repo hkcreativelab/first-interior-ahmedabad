@@ -1,0 +1,85 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { RoomPage } from "@/components/RoomPage";
+import livingWarm from "@/assets/living-warm.webp";
+import livingMinimal from "@/assets/living-minimal.webp";
+import livingLuxe from "@/assets/living-luxe.webp";
+
+export const Route = createFileRoute("/living")({
+  head: () => ({
+    meta: [
+      { title: "Living Room Interior Designs — First Interiors Ahmedabad" },
+      {
+        name: "description",
+        content:
+          "Living room interiors by First Interiors — warm, minimal and dark-luxe directions with custom sofas, panelling and layered lighting.",
+      },
+      { property: "og:title", content: "Living Room Designs — First Interiors" },
+      {
+        property: "og:description",
+        content: "Rooms designed to gather in — warm, layered and entirely yours.",
+      },
+      { property: "og:image", content: livingWarm },
+    ],
+  }),
+  component: LivingPage,
+});
+
+function LivingPage() {
+  return (
+    <RoomPage
+      eyebrow="— Living Rooms"
+      title="Rooms designed"
+      italic="to gather in"
+      intro="From sunset-flooded sofas to dark-luxe lounges — bespoke living rooms with custom seating, panelled feature walls and lighting tuned to every hour of the day."
+      hero={livingWarm}
+      ambient="living"
+      options={[
+        {
+          id: "sunset-warm",
+          title: "Sunset Warm",
+          img: livingWarm,
+          style: "Warm",
+          blurb:
+            "Floor-to-ceiling sheer curtains, an L-shaped linen sofa, brass coffee table and layered greenery — designed for golden-hour light.",
+          features: [
+            "Custom L-sofa in linen / cotton",
+            "Floor-to-ceiling sheer + blackout curtains",
+            "Brass / marble coffee table",
+            "Layered lighting (cove + floor lamp + table)",
+          ],
+          priceFrom: "",
+        },
+        {
+          id: "minimal-stone",
+          title: "Minimal Stone",
+          img: livingMinimal,
+          style: "Minimal",
+          blurb:
+            "Marble fireplace feature wall, low-slung grey sofas, oak flooring and a single statement artwork — calm, gallery-like, easy to live in.",
+          features: [
+            "Marble or limewash fireplace wall",
+            "Low-profile modular sofas",
+            "Engineered oak flooring",
+            "Curated single statement art piece",
+          ],
+          priceFrom: "",
+        },
+        {
+          id: "dark-luxe",
+          title: "Dark Luxe",
+          img: livingLuxe,
+          style: "Statement",
+          blurb:
+            "Walnut panelling, an emerald velvet chesterfield, brass task lamps and a moody palette — a lounge built for evenings, whisky and conversation.",
+          features: [
+            "Full-height walnut wall panelling",
+            "Velvet tufted chesterfield",
+            "Brass swing-arm floor + task lamps",
+            "Marble side tables + custom rug",
+          ],
+          priceFrom: "",
+        },
+      ]}
+    />
+  );
+}
