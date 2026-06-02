@@ -11,6 +11,7 @@ export type RoomOption = {
   blurb: string;
   features: string[];
   priceFrom: string;
+  imagePosition?: string;
 };
 
 export type RoomPageProps = {
@@ -25,7 +26,7 @@ export type RoomPageProps = {
 
 const OWNER_PHONE = "919876543210"; // +91 98765 43210 — update with real number
 const OWNER_DISPLAY = "+91 98765 43210";
-const OWNER_EMAIL = "hello@firstinteriors.in";
+const OWNER_EMAIL = "Firstinteriorss@gmail.com";
 
 function waLink(roomTitle: string, optTitle: string, intent: "Book" | "Inquiry") {
   const msg =
@@ -119,6 +120,7 @@ export function RoomPage({ eyebrow, title, italic, intro, hero, options, ambient
                     decoding="async"
                     width={1280}
                     height={896}
+                    style={{ objectPosition: o.imagePosition ?? "center" }}
                     className="h-[240px] w-full object-cover transition-transform duration-[1.4s] ease-out group-hover:scale-105 sm:h-[300px] md:h-[520px]"
                   />
                   <span className="absolute left-4 top-4 rounded-full bg-cream/90 px-3 py-2 text-xs uppercase tracking-[0.3em] text-forest sm:left-5 sm:top-5 sm:px-4">
@@ -143,13 +145,6 @@ export function RoomPage({ eyebrow, title, italic, intro, hero, options, ambient
                       </li>
                     ))}
                   </ul>
-
-                  <div className="mt-4 flex items-baseline gap-2 sm:mt-6">
-                    <span className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                      Starting at
-                    </span>
-                    <span className="font-display text-2xl text-forest sm:text-3xl">{o.priceFrom}</span>
-                  </div>
 
                   <div className="mt-6 flex flex-col gap-2 sm:mt-8 sm:gap-3 sm:flex-row sm:flex-wrap">
                     <a

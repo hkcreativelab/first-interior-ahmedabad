@@ -3,6 +3,8 @@ import { RoomPage } from "@/components/RoomPage";
 import diningClassic from "@/assets/dining.webp";
 import diningElegant from "@/assets/dining-elegant.webp";
 import diningModern from "@/assets/dining-modern.webp";
+import livingRoom1 from "@/assets/living room 1.jpeg";
+import dining1 from "@/assets/dining 1.png";
 
 export const Route = createFileRoute("/dining")({
   head: () => ({
@@ -37,7 +39,7 @@ function DiningPage() {
         {
           id: "classic-grand",
           title: "Classic Grand",
-          img: diningElegant,
+          img: livingRoom1,
           style: "Heritage",
           blurb:
             "An eight-seater walnut table under a crystal chandelier, with upholstered chairs and a sculpted feature wall — formal, warm, timeless.",
@@ -52,8 +54,9 @@ function DiningPage() {
         {
           id: "modern-round",
           title: "Modern Round",
-          img: diningModern,
+          img: dining1,
           style: "Contemporary",
+          imagePosition: "center bottom",
           blurb:
             "Sculptural marble round table on a fluted oak wall — sage velvet chairs, a single statement pendant, perfect for compact halls.",
           features: [

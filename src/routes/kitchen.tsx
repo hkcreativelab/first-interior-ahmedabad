@@ -3,6 +3,9 @@ import { RoomPage } from "@/components/RoomPage";
 import kitchenClassic from "@/assets/kitchen.webp";
 import kitchenModern from "@/assets/kitchen-modern.webp";
 import kitchenLuxury from "@/assets/kitchen-luxury.webp";
+import kitchen1 from "@/assets/kitchen 1.jpg";
+import kitchen2 from "@/assets/kitchen 2.jpg";
+import kitchen3 from "@/assets/kitchen 3.jpg";
 
 export const Route = createFileRoute("/kitchen")({
   head: () => ({
@@ -37,7 +40,7 @@ function KitchenPage() {
         {
           id: "sage-brass",
           title: "Sage & Brass",
-          img: kitchenClassic,
+          img: kitchen1,
           style: "Signature",
           blurb:
             "Our most-loved kitchen — sage shaker cabinets, antique brass handles, calacatta quartz tops and a warm pendant trio over the island.",
@@ -52,7 +55,7 @@ function KitchenPage() {
         {
           id: "scandi-light",
           title: "Scandinavian Light",
-          img: kitchenModern,
+          img: kitchen2,
           style: "Minimal",
           blurb:
             "Crisp white shaker cabinets, oak ceiling beam, brass tap and marble counters — built for kitchens that get drenched in daylight.",
@@ -67,7 +70,7 @@ function KitchenPage() {
         {
           id: "moody-luxe",
           title: "Moody Luxe",
-          img: kitchenLuxury,
+          img: kitchen3,
           style: "Statement",
           blurb:
             "Deep charcoal-stained oak, copper pendants, marble splashback and a dramatic island — a kitchen that doubles as a showpiece.",

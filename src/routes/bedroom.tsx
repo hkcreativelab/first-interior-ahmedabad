@@ -3,6 +3,9 @@ import { RoomPage } from "@/components/RoomPage";
 import bedroomClassic from "@/assets/bedroom.webp";
 import bedroomSerene from "@/assets/bedroom-serene.webp";
 import bedroomLuxe from "@/assets/bedroom-luxe.webp";
+import bedroom1 from "@/assets/bed room 1.jpg";
+import bedroom2 from "@/assets/bed room 2.jpg";
+import bedroom3 from "@/assets/bed room 3.jpg";
 
 export const Route = createFileRoute("/bedroom")({
   head: () => ({
@@ -37,7 +40,7 @@ function BedroomPage() {
         {
           id: "serene-wood",
           title: "Serene Wood",
-          img: bedroomSerene,
+          img: bedroom1,
           style: "Calm",
           blurb:
             "Full-wall walnut headboard panel with concealed cove lighting, linen bedding and matching bedside units — restful without feeling cold.",
@@ -52,7 +55,7 @@ function BedroomPage() {
         {
           id: "velvet-luxe",
           title: "Velvet Luxe",
-          img: bedroomLuxe,
+          img: bedroom2,
           style: "Statement",
           blurb:
             "Tall tufted velvet headboard, brass wall sconces, marble bedside tables and a moody charcoal palette — pure boutique-hotel energy.",
@@ -67,7 +70,7 @@ function BedroomPage() {
         {
           id: "warm-classic",
           title: "Warm Classic",
-          img: bedroomClassic,
+          img: bedroom3,
           style: "Timeless",
           blurb:
             "Sage walls, warm wood wardrobes, a textured rug and bedside reading nook — the design we recommend most for master bedrooms.",

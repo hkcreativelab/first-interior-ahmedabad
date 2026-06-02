@@ -3,6 +3,10 @@ import { RoomPage } from "@/components/RoomPage";
 import livingWarm from "@/assets/living-warm.webp";
 import livingMinimal from "@/assets/living-minimal.webp";
 import livingLuxe from "@/assets/living-luxe.webp";
+import livingRoom from "@/assets/living-room.webp";
+import livingRoomJpg from "@/assets/living-room.jpg";
+import livingRoom1 from "@/assets/living room 1.jpeg";
+import livingRoom2 from "@/assets/living room 2.png";
 
 export const Route = createFileRoute("/living")({
   head: () => ({
@@ -18,7 +22,7 @@ export const Route = createFileRoute("/living")({
         property: "og:description",
         content: "Rooms designed to gather in — warm, layered and entirely yours.",
       },
-      { property: "og:image", content: livingWarm },
+      { property: "og:image", content: livingRoomJpg },
     ],
   }),
   component: LivingPage,
@@ -31,13 +35,28 @@ function LivingPage() {
       title="Rooms designed"
       italic="to gather in"
       intro="From sunset-flooded sofas to dark-luxe lounges — bespoke living rooms with custom seating, panelled feature walls and lighting tuned to every hour of the day."
-      hero={livingWarm}
+      hero={livingRoomJpg}
       ambient="living"
       options={[
         {
+          id: "arched-warm",
+          title: "Arched Warm",
+          img: livingRoom1,
+          style: "Warm",
+          blurb:
+            "A vaulted lounge with a calming neutral palette, sculptural lighting and a large arched window — designed for easy afternoons and quiet evenings.",
+          features: [
+            "Custom L-shaped linen sofa",
+            "Arched glazing with soft drape",
+            "Warm timber coffee table",
+            "Textured plaster and wall panelling",
+          ],
+          priceFrom: "",
+        },
+        {
           id: "sunset-warm",
           title: "Sunset Warm",
-          img: livingWarm,
+          img: livingRoom2,
           style: "Warm",
           blurb:
             "Floor-to-ceiling sheer curtains, an L-shaped linen sofa, brass coffee table and layered greenery — designed for golden-hour light.",

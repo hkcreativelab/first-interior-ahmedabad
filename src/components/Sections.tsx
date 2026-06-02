@@ -334,10 +334,10 @@ export function Contact() {
             <div>
               <p className="text-[10px] uppercase tracking-[0.3em] text-ink/60">Email</p>
               <a
-                href="mailto:hello@firstinteriors.in"
+                href="mailto:Firstinteriorss@gmail.com"
                 className="mt-2 inline-block text-forest hover:text-ink"
               >
-                hello@firstinteriors.in
+                Firstinteriorss@gmail.com
               </a>
             </div>
             <div>
