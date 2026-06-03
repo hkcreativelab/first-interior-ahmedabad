@@ -2,56 +2,13 @@ import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { Heart, MessageCircle, Play } from "lucide-react";
-import kitchen from "@/assets/kitchen.webp";
-import livingRoom from "@/assets/living-room.webp";
-import bedroom from "@/assets/bedroom.webp";
+import { defaultReels, type Reel } from "@/lib/reels-data";
 
-export type Reel = {
-  id: string;
-  title: string;
-  description: string;
-  url: string;
-  thumbnail?: string;
-  views: string;
-  comments: string;
-};
-
-const STORAGE_KEY = "first-interiors-reels";
 const placeholderThumbnail =
   "data:image/svg+xml;charset=UTF-8," +
   encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800"><rect width="1200" height="800" fill="#f5f5f5"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Inter, sans-serif" font-size="44" fill="#9ca3af">Poster image unavailable</text></svg>',
   );
-
-const defaultReels: Reel[] = [
-  {
-    id: "luxury-kitchen-tour",
-    title: "Luxury Kitchen Tour",
-    description: "A warm, inviting kitchen with brass accents and premium finishes.",
-    url: "https://www.instagram.com/reel/sample-1",
-    thumbnail: kitchen,
-    views: "4.8k",
-    comments: "134",
-  },
-  {
-    id: "elegant-lounge-space",
-    title: "Elegant Lounge Space",
-    description: "A calm lounge with layered textures, curated art and natural light.",
-    url: "https://www.instagram.com/reel/sample-2",
-    thumbnail: livingRoom,
-    views: "3.2k",
-    comments: "92",
-  },
-  {
-    id: "minimalist-bedroom-tour",
-    title: "Minimalist Bedroom Tour",
-    description: "A soft bedroom retreat defined by neutral tones and gentle proportions.",
-    url: "https://www.instagram.com/reel/sample-3",
-    thumbnail: bedroom,
-    views: "6.1k",
-    comments: "215",
-  },
-];
 
 export function ReelsSection({
   maxItems = 3,
@@ -63,18 +20,31 @@ export function ReelsSection({
   const [reels, setReels] = useState<Reel[]>([]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    const parsed: Reel[] | null = stored ? JSON.parse(stored) : null;
-    if (parsed && parsed.length > 0) {
-      setReels(parsed);
-    } else {
-      setReels(defaultReels);
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultReels));
+    let isMounted = true;
+
+    async function loadReels() {
+      try {
+        const response = await fetch("/api/reels");
+        if (!response.ok) throw new Error("Failed to load reels");
+        const nextReels = (await response.json()) as Reel[];
+        if (isMounted) {
+          setReels(nextReels.length > 0 ? nextReels : defaultReels);
+        }
+      } catch {
+        if (isMounted) {
+          setReels(defaultReels);
+        }
+      }
     }
+
+    void loadReels();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const visibleReels = reels.slice(0, maxItems);
+  const visibleReels = (reels.length > 0 ? reels : defaultReels).slice(0, maxItems);
 
   return (
     <section id="reels" className="bg-cream py-24 text-ink">

@@ -5,11 +5,68 @@ import kitchen from "@/assets/kitchen.webp";
 import bedroom from "@/assets/bedroom.webp";
 import dining from "@/assets/dining.webp";
 import bathroom from "@/assets/bathroom.webp";
+import type { FormEvent } from "react";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 40 },
   show: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] as const } },
 };
+
+const ENQUIRY_EMAIL = "Firstinteriorss@gmail.com";
+
+function buildEnquiryMailto(formData: FormData) {
+  const name = String(formData.get("name") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
+  const projectType = String(formData.get("projectType") ?? "").trim();
+  const message = String(formData.get("message") ?? "").trim();
+
+  const subject = `Interior enquiry${name ? ` from ${name}` : ""}`;
+  const body = [
+    "Hello First Interiors,",
+    "",
+    name ? `Name: ${name}` : null,
+    email ? `Email: ${email}` : null,
+    projectType ? `Project type: ${projectType}` : null,
+    message ? `Message:\n${message}` : null,
+    "",
+    "Please get in touch with me.",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  return `mailto:${ENQUIRY_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+function buildGmailComposeUrl(formData: FormData) {
+  const name = String(formData.get("name") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
+  const projectType = String(formData.get("projectType") ?? "").trim();
+  const message = String(formData.get("message") ?? "").trim();
+
+  const subject = `Interior enquiry${name ? ` from ${name}` : ""}`;
+  const body = [
+    "Hello First Interiors,",
+    "",
+    name ? `Name: ${name}` : null,
+    email ? `Email: ${email}` : null,
+    projectType ? `Project type: ${projectType}` : null,
+    message ? `Message:\n${message}` : null,
+    "",
+    "Please get in touch with me.",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const gmailParams = new URLSearchParams({
+    view: "cm",
+    fs: "1",
+    to: ENQUIRY_EMAIL,
+    su: subject,
+    body,
+  });
+
+  return `https://mail.google.com/mail/?${gmailParams.toString()}`;
+}
 
 /* -------------------- Gallery -------------------- */
 const gallery = [
@@ -310,6 +367,17 @@ export function Reviews() {
 
 /* -------------------- Contact -------------------- */
 export function Contact() {
+  function handleEnquirySubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const gmailComposeUrl = buildGmailComposeUrl(formData);
+    const popup = window.open(gmailComposeUrl, "_blank", "noopener,noreferrer");
+
+    if (!popup) {
+      window.location.href = buildEnquiryMailto(formData);
+    }
+  }
+
   return (
     <section id="contact" className="relative overflow-hidden bg-cream py-32 text-ink">
       <div
@@ -349,10 +417,7 @@ export function Contact() {
           </div>
         </div>
 
-        <form
-          onSubmit={(e) => e.preventDefault()}
-          className="space-y-6 rounded-[2rem] border border-border bg-ink/5 p-8 shadow-sm"
-        >
+        <form onSubmit={handleEnquirySubmit} className="space-y-6 rounded-[2rem] border border-border bg-ink/5 p-8 shadow-sm">
           {[
             { l: "Your name", t: "text", p: "Jane Doe" },
             { l: "Email", t: "email", p: "jane@home.com" },
@@ -363,6 +428,8 @@ export function Contact() {
               <input
                 type={f.t}
                 placeholder={f.p}
+                name={f.l === "Your name" ? "name" : f.l === "Email" ? "email" : "projectType"}
+                required={f.l !== "Project type"}
                 className="mt-3 w-full rounded-3xl border border-border bg-cream/90 px-5 py-4 text-lg text-ink outline-none transition focus:border-forest"
               />
             </label>
@@ -373,6 +440,7 @@ export function Contact() {
             </span>
             <textarea
               rows={4}
+              name="message"
               placeholder="Square footage, style references, anything that excites you…"
               className="mt-3 w-full resize-none rounded-3xl border border-border bg-cream/90 px-5 py-4 text-lg text-ink outline-none transition focus:border-forest"
             />

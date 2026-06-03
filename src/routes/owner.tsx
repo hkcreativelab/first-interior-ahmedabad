@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "
 import { createFileRoute } from "@tanstack/react-router";
 import { Footer } from "@/components/Footer";
 import { Nav } from "@/components/Nav";
+import { defaultReels, type Reel } from "@/lib/reels-data";
 
 export const Route = createFileRoute("/owner")({
   head: () => ({
@@ -17,23 +18,15 @@ export const Route = createFileRoute("/owner")({
   component: OwnerPortalPage,
 });
 
-const STORAGE_KEY = "first-interiors-reels";
 const PASSCODE_KEY = "first-interiors-owner-passcode";
 const DEFAULT_PASSCODE = "owner240";
-
-type ReelItem = {
-  id: string;
-  title: string;
-  description: string;
-  url: string;
-  thumbnail: string;
-};
+const REELS_API = "/api/reels";
 
 function OwnerPortalPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passcodeInput, setPasscodeInput] = useState("");
   const [message, setMessage] = useState("");
-  const [reels, setReels] = useState<ReelItem[]>([]);
+  const [reels, setReels] = useState<Reel[]>(defaultReels);
   const [savedPasscode, setSavedPasscode] = useState(DEFAULT_PASSCODE);
   const [newPasscode, setNewPasscode] = useState("");
   const [currentPasscode, setCurrentPasscode] = useState("");
@@ -54,22 +47,46 @@ function OwnerPortalPage() {
     }
     setSavedPasscode(initialPasscode);
 
-    const storedReels = window.localStorage.getItem(STORAGE_KEY);
-    setReels(storedReels ? JSON.parse(storedReels) : []);
-
     if (window.sessionStorage.getItem("first-interiors-owner-auth") === "true") {
       setIsAuthenticated(true);
     }
+
+    void loadReels();
   }, []);
 
   const hasReels = useMemo(() => reels.length > 0, [reels]);
 
-  const saveReels = (nextReels: ReelItem[]) => {
-    setReels(nextReels);
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextReels));
+  async function loadReels() {
+    try {
+      const response = await fetch(REELS_API);
+      if (!response.ok) throw new Error("Failed to load reels");
+      const nextReels = (await response.json()) as Reel[];
+      setReels(nextReels.length > 0 ? nextReels : defaultReels);
+    } catch {
+      setReels(defaultReels);
     }
-  };
+  }
+
+  async function saveReels(nextReels: Reel[]) {
+    try {
+      const response = await fetch(REELS_API, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(nextReels),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to save reels");
+      }
+      const savedReels = (await response.json()) as Reel[];
+      setReels(savedReels.length > 0 ? savedReels : defaultReels);
+      return true;
+    } catch {
+      setMessage("Could not save reels to shared storage. Please try again.");
+      return false;
+    }
+  }
 
   const handleLogin = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -99,7 +116,7 @@ function OwnerPortalPage() {
     reader.readAsDataURL(file);
   };
 
-  const handleAddReel = (event: FormEvent<HTMLFormElement>) => {
+  const handleAddReel = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!formState.title.trim() || !formState.url.trim() || !formState.thumbnail) {
       setMessage("Title, URL and poster image are required to add a reel.");
@@ -113,17 +130,21 @@ function OwnerPortalPage() {
         description: formState.description.trim(),
         url: formState.url.trim(),
         thumbnail: formState.thumbnail,
+        views: "0",
+        comments: "0",
       },
       ...reels,
     ];
 
-    saveReels(nextReels);
+    const saved = await saveReels(nextReels);
+    if (!saved) return;
     setFormState({ title: "", description: "", url: "", thumbnail: "" });
     setMessage("Reel saved successfully.");
   };
 
-  const handleDelete = (id: string) => {
-    saveReels(reels.filter((reel) => reel.id !== id));
+  const handleDelete = async (id: string) => {
+    const saved = await saveReels(reels.filter((reel) => reel.id !== id));
+    if (!saved) return;
     setMessage("Reel deleted.");
   };
 
