@@ -10,6 +10,18 @@ type Reel = {
   comments: string;
 };
 
+type BlobListEntry = {
+  url: string;
+  pathname: string;
+};
+
+type ReelsGlobal = typeof globalThis & {
+  __firstInteriorsReels?: {
+    reels: Reel[];
+    source: string;
+  };
+};
+
 const defaultReels: Reel[] = [
   {
     id: "luxury-kitchen-tour",
@@ -38,9 +50,44 @@ const defaultReels: Reel[] = [
 ];
 
 const REELS_BLOB_PATH = "reels/reels.json";
+const REELS_STATE_PREFIX = "reels/states/";
 
 function getBlobToken() {
   return process.env.BLOB_READ_WRITE_TOKEN;
+}
+
+function getStoreIdFromToken(token: string) {
+  return token.split("_")[3];
+}
+
+async function listFreshStateBlobs(token: string): Promise<BlobListEntry[]> {
+  const storeId = getStoreIdFromToken(token);
+  const requestId = `${storeId}:${Date.now()}:${Math.random().toString(16).slice(2)}`;
+  const params = new URLSearchParams({
+    prefix: REELS_STATE_PREFIX,
+    limit: "1000",
+    fresh: Date.now().toString(),
+  });
+
+  const response = await fetch(`https://vercel.com/api/blob?${params.toString()}`, {
+    cache: "no-store",
+    headers: {
+      authorization: `Bearer ${token}`,
+      "cache-control": "no-cache",
+      pragma: "no-cache",
+      "x-api-blob-request-attempt": "0",
+      "x-api-blob-request-id": requestId,
+      "x-vercel-blob-store-id": storeId,
+      "x-api-version": "12",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to list reel states");
+  }
+
+  const body = (await response.json()) as { blobs?: BlobListEntry[] };
+  return body.blobs ?? [];
 }
 
 function normalizeReels(input: unknown): Reel[] {
@@ -67,28 +114,52 @@ function normalizeReels(input: unknown): Reel[] {
     }));
 }
 
-async function readStoredReels(): Promise<Reel[]> {
+async function readStoredReels(): Promise<{ reels: Reel[]; source: string }> {
+  const cachedReels = (globalThis as ReelsGlobal).__firstInteriorsReels;
+  if (cachedReels) {
+    return cachedReels;
+  }
+
   const token = getBlobToken();
   if (!token) {
-    return defaultReels;
+    return { reels: defaultReels, source: "defaults:no-token" };
   }
 
   try {
-    const result = await get(REELS_BLOB_PATH, {
+    const blobs = await listFreshStateBlobs(token);
+
+    const blob = blobs.sort((left, right) => right.pathname.localeCompare(left.pathname))[0];
+
+    if (blob) {
+      const response = await fetch(blob.url, {
+        cache: "no-store",
+      });
+      if (response.ok) {
+        const parsed = (await response.json()) as unknown;
+        return { reels: normalizeReels(parsed), source: blob.pathname };
+      }
+    }
+  } catch (error) {
+    console.error("Failed to read versioned reels", error);
+  }
+
+  try {
+    const legacyResult = await get(REELS_BLOB_PATH, {
       access: "public",
       token,
     });
 
-    if (!result || result.statusCode !== 200 || !result.stream) {
-      return defaultReels;
+    if (legacyResult?.statusCode === 200 && legacyResult.stream) {
+      const parsed = (await new Response(legacyResult.stream).json()) as unknown;
+      const legacyReels = normalizeReels(parsed);
+      await writeStoredReels(legacyReels);
+      return { reels: legacyReels, source: REELS_BLOB_PATH };
     }
-
-    const parsed = (await new Response(result.stream).json()) as unknown;
-    return normalizeReels(parsed);
   } catch (error) {
-    console.error("Failed to read shared reels", error);
-    return defaultReels;
+    console.error("Failed to migrate legacy public reels", error);
   }
+
+  return { reels: defaultReels, source: "defaults:fallback" };
 }
 
 async function writeStoredReels(reels: Reel[]): Promise<Reel[]> {
@@ -98,14 +169,23 @@ async function writeStoredReels(reels: Reel[]): Promise<Reel[]> {
   }
 
   const normalizedReels = normalizeReels(reels);
+  const statePath = `${REELS_STATE_PREFIX}${Date.now()}-${Math.random()
+    .toString(16)
+    .slice(2)}.json`;
 
-  await put(REELS_BLOB_PATH, JSON.stringify(normalizedReels), {
+  await put(statePath, JSON.stringify(normalizedReels), {
     access: "public",
     contentType: "application/json",
     addRandomSuffix: false,
-    allowOverwrite: true,
+    allowOverwrite: false,
+    cacheControlMaxAge: 60,
     token,
   });
+
+  (globalThis as ReelsGlobal).__firstInteriorsReels = {
+    reels: normalizedReels,
+    source: statePath,
+  };
 
   return normalizedReels;
 }
@@ -158,17 +238,27 @@ function sendJson(response: NodeResponse, statusCode: number, body: unknown) {
   response.end?.(JSON.stringify(body));
 }
 
+function sendReels(response: NodeResponse, reels: Reel[], source: string) {
+  response.statusCode = 200;
+  response.setHeader?.("Content-Type", "application/json; charset=utf-8");
+  response.setHeader?.("X-Reels-Source", source);
+  response.end?.(JSON.stringify(reels));
+}
+
 export default async function handler(request: NodeRequest, response?: NodeResponse) {
   try {
     if (request.method === "GET") {
-      const reels = await readStoredReels();
+      const { reels, source } = await readStoredReels();
       if (response) {
-        sendJson(response, 200, reels);
+        sendReels(response, reels, source);
         return;
       }
       return new Response(JSON.stringify(reels), {
         status: 200,
-        headers: { "Content-Type": "application/json; charset=utf-8" },
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+          "X-Reels-Source": source,
+        },
       });
     }
 
