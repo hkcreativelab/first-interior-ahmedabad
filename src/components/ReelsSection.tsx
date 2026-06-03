@@ -17,7 +17,7 @@ export function ReelsSection({
   maxItems?: number;
   showCta?: boolean;
 }) {
-  const [reels, setReels] = useState<Reel[]>([]);
+  const [reels, setReels] = useState<Reel[] | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -28,7 +28,7 @@ export function ReelsSection({
         if (!response.ok) throw new Error("Failed to load reels");
         const nextReels = (await response.json()) as Reel[];
         if (isMounted) {
-          setReels(nextReels.length > 0 ? nextReels : defaultReels);
+          setReels(nextReels);
         }
       } catch {
         if (isMounted) {
@@ -44,7 +44,7 @@ export function ReelsSection({
     };
   }, []);
 
-  const visibleReels = (reels.length > 0 ? reels : defaultReels).slice(0, maxItems);
+  const visibleReels = reels?.slice(0, maxItems) ?? [];
 
   return (
     <section id="reels" className="bg-cream py-24 text-ink">
@@ -59,8 +59,13 @@ export function ReelsSection({
           </p>
         </div>
 
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {visibleReels.map((reel, index) => (
+        {reels === null ? (
+          <div className="rounded-[2rem] border border-ink/10 bg-cream p-8 text-center text-ink/70">
+            Loading reels...
+          </div>
+        ) : visibleReels.length > 0 ? (
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {visibleReels.map((reel, index) => (
             <motion.article
               key={reel.id}
               initial={{ opacity: 0, y: 24 }}
@@ -106,8 +111,13 @@ export function ReelsSection({
                 </div>
               </div>
             </motion.article>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-[2rem] border border-ink/10 bg-cream p-8 text-center text-ink/70">
+            No reels are published right now.
+          </div>
+        )}
 
         {showCta && (
           <div className="mt-12 flex flex-col items-center gap-4 text-center sm:flex-row sm:justify-between sm:text-left">

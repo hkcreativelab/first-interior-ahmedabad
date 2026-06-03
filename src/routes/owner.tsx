@@ -21,6 +21,43 @@ export const Route = createFileRoute("/owner")({
 const PASSCODE_KEY = "first-interiors-owner-passcode";
 const DEFAULT_PASSCODE = "owner240";
 const REELS_API = "/api/reels";
+const POSTER_API = "/api/reel-poster";
+const MAX_POSTER_SIZE = 1200;
+const POSTER_QUALITY = 0.82;
+
+function resizePosterImage(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+
+      const scale = Math.min(1, MAX_POSTER_SIZE / Math.max(image.width, image.height));
+      const width = Math.max(1, Math.round(image.width * scale));
+      const height = Math.max(1, Math.round(image.height * scale));
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+
+      const context = canvas.getContext("2d");
+      if (!context) {
+        reject(new Error("Poster image could not be processed."));
+        return;
+      }
+
+      context.drawImage(image, 0, 0, width, height);
+      resolve(canvas.toDataURL("image/jpeg", POSTER_QUALITY));
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("Poster image could not be loaded."));
+    };
+
+    image.src = objectUrl;
+  });
+}
 
 function OwnerPortalPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -30,6 +67,8 @@ function OwnerPortalPage() {
   const [savedPasscode, setSavedPasscode] = useState(DEFAULT_PASSCODE);
   const [newPasscode, setNewPasscode] = useState("");
   const [currentPasscode, setCurrentPasscode] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [isProcessingPoster, setIsProcessingPoster] = useState(false);
   const [formState, setFormState] = useState({
     title: "",
     description: "",
@@ -61,13 +100,14 @@ function OwnerPortalPage() {
       const response = await fetch(REELS_API);
       if (!response.ok) throw new Error("Failed to load reels");
       const nextReels = (await response.json()) as Reel[];
-      setReels(nextReels.length > 0 ? nextReels : defaultReels);
+      setReels(nextReels);
     } catch {
       setReels(defaultReels);
     }
   }
 
   async function saveReels(nextReels: Reel[]) {
+    setIsSaving(true);
     try {
       const response = await fetch(REELS_API, {
         method: "POST",
@@ -80,11 +120,13 @@ function OwnerPortalPage() {
         throw new Error("Failed to save reels");
       }
       const savedReels = (await response.json()) as Reel[];
-      setReels(savedReels.length > 0 ? savedReels : defaultReels);
+      setReels(savedReels);
       return true;
     } catch {
       setMessage("Could not save reels to shared storage. Please try again.");
       return false;
+    } finally {
+      setIsSaving(false);
     }
   }
 
@@ -102,18 +144,48 @@ function OwnerPortalPage() {
     setMessage("Passcode is incorrect. Please try again.");
   };
 
-  const handleThumbnailChange = (event: ChangeEvent<HTMLInputElement>) => {
+  async function uploadPoster(reelId: string, dataUrl: string) {
+    if (!dataUrl.startsWith("data:")) {
+      return dataUrl;
+    }
+
+    const response = await fetch(POSTER_API, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ reelId, dataUrl }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to upload poster image");
+    }
+
+    const body = (await response.json()) as { url?: string };
+    if (!body.url) {
+      throw new Error("Poster upload did not return a URL");
+    }
+
+    return body.url;
+  }
+
+  const handleThumbnailChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result;
-      if (typeof result === "string") {
-        setFormState((prev) => ({ ...prev, thumbnail: result }));
-      }
-    };
-    reader.readAsDataURL(file);
+    setIsProcessingPoster(true);
+    setMessage("Preparing poster image...");
+
+    try {
+      const resizedPoster = await resizePosterImage(file);
+      setFormState((prev) => ({ ...prev, thumbnail: resizedPoster }));
+      setMessage("Poster image ready.");
+    } catch {
+      setFormState((prev) => ({ ...prev, thumbnail: "" }));
+      setMessage("Poster image could not be prepared. Please choose another image.");
+    } finally {
+      setIsProcessingPoster(false);
+    }
   };
 
   const handleAddReel = async (event: FormEvent<HTMLFormElement>) => {
@@ -123,13 +195,25 @@ function OwnerPortalPage() {
       return;
     }
 
+    const reelId = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    setIsSaving(true);
+
+    let posterUrl: string;
+    try {
+      posterUrl = await uploadPoster(reelId, formState.thumbnail);
+    } catch {
+      setIsSaving(false);
+      setMessage("Could not upload poster image. Please try a smaller image.");
+      return;
+    }
+
     const nextReels = [
       {
-        id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        id: reelId,
         title: formState.title.trim(),
         description: formState.description.trim(),
         url: formState.url.trim(),
-        thumbnail: formState.thumbnail,
+        thumbnail: posterUrl,
         views: "0",
         comments: "0",
       },
@@ -300,8 +384,9 @@ function OwnerPortalPage() {
                         <input
                           type="file"
                           accept="image/*"
+                          disabled={isSaving || isProcessingPoster}
                           onChange={handleThumbnailChange}
-                          className="mt-2 sm:mt-3 w-full rounded-lg sm:rounded-2xl md:rounded-3xl border border-border bg-cream px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm outline-none transition file:rounded-full file:border-0 file:bg-forest file:px-3 sm:file:px-4 file:py-1.5 sm:file:py-2 file:text-xs sm:file:text-sm file:text-cream file:font-semibold file:transition hover:file:bg-ink"
+                          className="mt-2 sm:mt-3 w-full rounded-lg sm:rounded-2xl md:rounded-3xl border border-border bg-cream px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm outline-none transition file:rounded-full file:border-0 file:bg-forest file:px-3 sm:file:px-4 file:py-1.5 sm:file:py-2 file:text-xs sm:file:text-sm file:text-cream file:font-semibold file:transition hover:file:bg-ink disabled:cursor-not-allowed disabled:opacity-60"
                         />
                       </label>
 
@@ -318,9 +403,10 @@ function OwnerPortalPage() {
 
                       <button
                         type="submit"
-                        className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-forest px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-cream transition hover:bg-ink"
+                        disabled={isSaving || isProcessingPoster}
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-forest px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-cream transition hover:bg-ink disabled:cursor-not-allowed disabled:opacity-60"
                       >
-                        Add reel
+                        {isProcessingPoster ? "Preparing poster..." : isSaving ? "Saving..." : "Add reel"}
                       </button>
                     </form>
                   </div>
@@ -373,13 +459,14 @@ function OwnerPortalPage() {
                                     {reel.url}
                                   </p>
                                 </div>
-                                <button
-                                  type="button"
-                                  onClick={() => handleDelete(reel.id)}
-                                  className="w-full sm:w-auto rounded-full border border-border bg-cream/80 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-ink transition hover:bg-cream/90"
-                                >
-                                  Delete
-                                </button>
+      <button
+        disabled={isSaving}
+        type="button"
+        onClick={() => handleDelete(reel.id)}
+        className="w-full sm:w-auto rounded-full border border-border bg-cream/80 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-ink transition hover:bg-cream/90 disabled:cursor-not-allowed disabled:opacity-60"
+      >
+        {isSaving ? "Saving..." : "Delete"}
+      </button>
                               </div>
                             ))}
                           </div>

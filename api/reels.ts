@@ -84,8 +84,7 @@ async function readStoredReels(): Promise<Reel[]> {
     }
 
     const parsed = (await new Response(result.stream).json()) as unknown;
-    const reels = normalizeReels(parsed);
-    return reels.length > 0 ? reels : defaultReels;
+    return normalizeReels(parsed);
   } catch (error) {
     console.error("Failed to read shared reels", error);
     return defaultReels;
@@ -108,7 +107,7 @@ async function writeStoredReels(reels: Reel[]): Promise<Reel[]> {
     token,
   });
 
-  return normalizedReels.length > 0 ? normalizedReels : defaultReels;
+  return normalizedReels;
 }
 
 type NodeRequest = {
@@ -200,6 +199,17 @@ export default async function handler(request: NodeRequest, response?: NodeRespo
     });
   } catch (error) {
     console.error("Reels API failed", error);
+    if (request.method === "POST") {
+      if (response) {
+        sendJson(response, 500, { error: "Could not save reels" });
+        return;
+      }
+      return new Response(JSON.stringify({ error: "Could not save reels" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+      });
+    }
+
     if (response) {
       sendJson(response, 200, defaultReels);
       return;
