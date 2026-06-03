@@ -111,16 +111,87 @@ async function writeStoredReels(reels: Reel[]): Promise<Reel[]> {
   return normalizedReels.length > 0 ? normalizedReels : defaultReels;
 }
 
-export default async function handler(request: Request) {
+type NodeRequest = {
+  method?: string;
+  body?: unknown;
+  on?: (event: "data" | "end" | "error", listener: (...args: unknown[]) => void) => void;
+};
+
+type NodeResponse = {
+  statusCode?: number;
+  setHeader?: (name: string, value: string) => void;
+  end?: (chunk?: string) => void;
+};
+
+async function readJsonBody(request: NodeRequest): Promise<unknown> {
+  if (request.body !== undefined) {
+    if (typeof request.body === "string") {
+      return JSON.parse(request.body);
+    }
+
+    return request.body;
+  }
+
+  if (typeof request.on !== "function") {
+    return undefined;
+  }
+
+  const chunks: Buffer[] = [];
+  await new Promise<void>((resolve, reject) => {
+    request.on?.("data", (chunk: unknown) => {
+      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk as string));
+    });
+    request.on?.("end", () => resolve());
+    request.on?.("error", (error: unknown) => reject(error));
+  });
+
+  const rawBody = Buffer.concat(chunks).toString("utf8");
+  if (!rawBody.trim()) {
+    return undefined;
+  }
+
+  return JSON.parse(rawBody);
+}
+
+function sendJson(response: NodeResponse, statusCode: number, body: unknown) {
+  response.statusCode = statusCode;
+  response.setHeader?.("Content-Type", "application/json; charset=utf-8");
+  response.end?.(JSON.stringify(body));
+}
+
+export default async function handler(request: NodeRequest, response?: NodeResponse) {
   try {
     if (request.method === "GET") {
-      return Response.json(await readStoredReels());
+      const reels = await readStoredReels();
+      if (response) {
+        sendJson(response, 200, reels);
+        return;
+      }
+      return new Response(JSON.stringify(reels), {
+        status: 200,
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+      });
     }
 
     if (request.method === "POST") {
-      const body = (await request.json()) as Reel[];
+      const body = (await readJsonBody(request)) as Reel[];
       const savedReels = await writeStoredReels(body);
-      return Response.json(savedReels);
+      if (response) {
+        sendJson(response, 200, savedReels);
+        return;
+      }
+      return new Response(JSON.stringify(savedReels), {
+        status: 200,
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+      });
+    }
+
+    if (response) {
+      response.statusCode = 405;
+      response.setHeader?.("Allow", "GET, POST");
+      response.setHeader?.("Content-Type", "text/plain; charset=utf-8");
+      response.end?.("Method not allowed");
+      return;
     }
 
     return new Response("Method not allowed", {
@@ -129,6 +200,13 @@ export default async function handler(request: Request) {
     });
   } catch (error) {
     console.error("Reels API failed", error);
-    return Response.json(defaultReels, { status: 200 });
+    if (response) {
+      sendJson(response, 200, defaultReels);
+      return;
+    }
+    return new Response(JSON.stringify(defaultReels), {
+      status: 200,
+      headers: { "Content-Type": "application/json; charset=utf-8" },
+    });
   }
 }
