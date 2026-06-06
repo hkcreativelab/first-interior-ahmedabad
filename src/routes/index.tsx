@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { Nav } from "@/components/Nav";
 import { Hero } from "@/components/Hero";
 import { Gallery, Services, Why, Reviews, Contact } from "@/components/Sections";
@@ -24,6 +25,18 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const routeHash = window.location.hash.replace(/^#\/?/, "");
+    const section = new URLSearchParams(routeHash.split("?")[1] ?? "").get("section");
+    if (!section) return;
+
+    window.requestAnimationFrame(() => {
+      document.getElementById(section)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, []);
+
   return (
     <div id="top" className="min-h-screen bg-background text-foreground">
       <Nav />

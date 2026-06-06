@@ -15,7 +15,6 @@ import { Route as LivingRouteImport } from './routes/living'
 import { Route as KitchenRouteImport } from './routes/kitchen'
 import { Route as DiningRouteImport } from './routes/dining'
 import { Route as BedroomRouteImport } from './routes/bedroom'
-import { Route as BathroomRouteImport } from './routes/bathroom'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -49,11 +48,6 @@ const BedroomRoute = BedroomRouteImport.update({
   path: '/bedroom',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BathroomRoute = BathroomRouteImport.update({
-  id: '/bathroom',
-  path: '/bathroom',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -68,7 +62,6 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/bathroom': typeof BathroomRoute
   '/bedroom': typeof BedroomRoute
   '/dining': typeof DiningRoute
   '/kitchen': typeof KitchenRoute
@@ -79,7 +72,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/bathroom': typeof BathroomRoute
   '/bedroom': typeof BedroomRoute
   '/dining': typeof DiningRoute
   '/kitchen': typeof KitchenRoute
@@ -91,7 +83,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/bathroom': typeof BathroomRoute
   '/bedroom': typeof BedroomRoute
   '/dining': typeof DiningRoute
   '/kitchen': typeof KitchenRoute
@@ -104,7 +95,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
-    | '/bathroom'
     | '/bedroom'
     | '/dining'
     | '/kitchen'
@@ -115,7 +105,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
-    | '/bathroom'
     | '/bedroom'
     | '/dining'
     | '/kitchen'
@@ -126,7 +115,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
-    | '/bathroom'
     | '/bedroom'
     | '/dining'
     | '/kitchen'
@@ -138,7 +126,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  BathroomRoute: typeof BathroomRoute
   BedroomRoute: typeof BedroomRoute
   DiningRoute: typeof DiningRoute
   KitchenRoute: typeof KitchenRoute
@@ -191,13 +178,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BedroomRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/bathroom': {
-      id: '/bathroom'
-      path: '/bathroom'
-      fullPath: '/bathroom'
-      preLoaderRoute: typeof BathroomRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -218,7 +198,6 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  BathroomRoute: BathroomRoute,
   BedroomRoute: BedroomRoute,
   DiningRoute: DiningRoute,
   KitchenRoute: KitchenRoute,

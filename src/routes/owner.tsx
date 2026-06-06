@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "
 import { createFileRoute } from "@tanstack/react-router";
 import { Footer } from "@/components/Footer";
 import { Nav } from "@/components/Nav";
+import { getApiUrl } from "@/lib/api-base";
 import { defaultReels, type Reel } from "@/lib/reels-data";
 
 export const Route = createFileRoute("/owner")({
@@ -97,7 +98,9 @@ function OwnerPortalPage() {
 
   async function loadReels() {
     try {
-      const response = await fetch(REELS_API);
+      const response = await fetch(getApiUrl(`${REELS_API}?fresh=${Date.now()}`), {
+        cache: "no-store",
+      });
       if (!response.ok) throw new Error("Failed to load reels");
       const nextReels = (await response.json()) as Reel[];
       setReels(nextReels);
@@ -109,7 +112,7 @@ function OwnerPortalPage() {
   async function saveReels(nextReels: Reel[]) {
     setIsSaving(true);
     try {
-      const response = await fetch(REELS_API, {
+      const response = await fetch(getApiUrl(REELS_API), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -149,7 +152,7 @@ function OwnerPortalPage() {
       return dataUrl;
     }
 
-    const response = await fetch(POSTER_API, {
+    const response = await fetch(getApiUrl(POSTER_API), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

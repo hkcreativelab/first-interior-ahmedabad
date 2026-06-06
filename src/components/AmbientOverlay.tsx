@@ -1,7 +1,7 @@
 import { motion, useScroll, useTransform, type MotionValue } from "motion/react";
 import { useRef } from "react";
 
-export type AmbientVariant = "living" | "kitchen" | "dining" | "bathroom" | "bedroom";
+export type AmbientVariant = "living" | "kitchen" | "dining" | "bedroom";
 
 /**
  * Scroll-driven cinematic overlay rendered above the room hero image.
@@ -10,7 +10,6 @@ export type AmbientVariant = "living" | "kitchen" | "dining" | "bathroom" | "bed
  *  - kitchen → warm glow rises, steam plumes, food chips slide up from bottom
  *  - bedroom → two curtain panels slide outward, bedside lamp glows
  *  - dining  → pendant glow, plates / candles fade in across the table line
- *  - bathroom→ light shifts cool→warm, soft fog drifts, water shimmer
  */
 export function AmbientOverlay({ variant }: { variant: AmbientVariant }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -29,7 +28,6 @@ export function AmbientOverlay({ variant }: { variant: AmbientVariant }) {
       {variant === "kitchen" && <KitchenScene p={scrollYProgress} />}
       {variant === "bedroom" && <BedroomScene p={scrollYProgress} />}
       {variant === "dining" && <DiningScene p={scrollYProgress} />}
-      {variant === "bathroom" && <BathroomScene p={scrollYProgress} />}
     </div>
   );
 }
@@ -204,46 +202,6 @@ function DiningScene({ p }: P) {
           }}
         />
       ))}
-    </>
-  );
-}
-
-/* ---------------- Bathroom ---------------- */
-function BathroomScene({ p }: P) {
-  // Lighting shifts cool → warm as you scroll
-  const cool = useTransform(p, [0, 0.5], [0.55, 0]);
-  const warm = useTransform(p, [0.3, 1], [0, 0.55]);
-  const fog = useTransform(p, [0, 0.5, 1], [0.1, 0.55, 0.3]);
-  return (
-    <>
-      <motion.div
-        style={{ opacity: cool }}
-        className="absolute inset-0 bg-gradient-to-t from-cream/35 via-cream/15 to-transparent mix-blend-soft-light"
-      />
-      <motion.div
-        style={{ opacity: warm }}
-        className="absolute inset-0 bg-gradient-to-t from-forest/35 via-cream/15 to-transparent mix-blend-soft-light"
-      />
-      <motion.div
-        style={{ opacity: fog }}
-        className="absolute inset-0 bg-gradient-to-t from-cream/0 via-cream/15 to-cream/30"
-      />
-      {[0, 1.5, 3].map((d, i) => (
-        <span
-          key={i}
-          className="absolute left-1/3 bottom-[15%] block h-20 w-20 rounded-full bg-cream/30 blur-2xl animate-steam"
-          style={{ left: `${25 + i * 20}%`, animationDelay: `${d}s`, animationDuration: "6s" }}
-        />
-      ))}
-      <div className="absolute bottom-[20%] right-[22%]">
-        {[0, 1, 2].map((d) => (
-          <span
-            key={d}
-            className="absolute left-1/2 top-1/2 block h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full border border-cream/40 animate-ripple"
-            style={{ animationDelay: `${d}s` }}
-          />
-        ))}
-      </div>
     </>
   );
 }

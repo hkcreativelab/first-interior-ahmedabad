@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { Heart, MessageCircle, Play } from "lucide-react";
 import { defaultReels, type Reel } from "@/lib/reels-data";
+import { getApiUrl } from "@/lib/api-base";
 
 const placeholderThumbnail =
   "data:image/svg+xml;charset=UTF-8," +
@@ -24,7 +25,9 @@ export function ReelsSection({
 
     async function loadReels() {
       try {
-        const response = await fetch("/api/reels");
+        const response = await fetch(getApiUrl(`/api/reels?fresh=${Date.now()}`), {
+          cache: "no-store",
+        });
         if (!response.ok) throw new Error("Failed to load reels");
         const nextReels = (await response.json()) as Reel[];
         if (isMounted) {

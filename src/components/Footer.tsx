@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Instagram } from "lucide-react";
+import { getSectionHref } from "@/lib/hostinger-links";
 
 export function Footer() {
   return (
@@ -37,7 +38,7 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <a href="/#contact" className="hover:text-sand transition-colors">
+                <a href={getSectionHref("contact")} className="hover:text-sand transition-colors">
                   Contact
                 </a>
               </li>
@@ -67,7 +68,7 @@ export function Footer() {
               <div>
                 <p className="font-medium text-cream">Instagram</p>
                 <a
-                  href="https://www.instagram.com/firstinteriors_?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+                  href="https://www.instagram.com/firstinteriors_utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
                   target="_blank"
                   rel="noreferrer"
                   className="mt-2 inline-flex items-center gap-2 text-base text-cream/80 hover:text-sand transition-colors"
@@ -83,7 +84,7 @@ export function Footer() {
         <div className="mt-12 border-t border-cream/15 pt-8 text-center text-sm uppercase tracking-[0.35em] text-cream/50 md:flex md:items-center md:justify-between md:text-left">
           <p>© {new Date().getFullYear()} First Interiors · Ahmedabad · All rights reserved.</p>
           <a
-            href="https://www.instagram.com/firstinteriors_?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
+            href="https://www.instagram.com/firstinteriors_utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
             target="_blank"
             rel="noreferrer"
             className="mt-3 inline-flex items-center justify-center gap-2 text-base text-cream/80 transition-colors hover:text-sand md:mt-0"

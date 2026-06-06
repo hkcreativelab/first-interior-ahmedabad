@@ -4,8 +4,8 @@ import livingRoom from "@/assets/living-room.webp";
 import kitchen from "@/assets/kitchen.webp";
 import bedroom from "@/assets/bedroom.webp";
 import dining from "@/assets/dining.webp";
-import bathroom from "@/assets/bathroom.webp";
 import type { FormEvent } from "react";
+import { getSectionHref } from "@/lib/hostinger-links";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 40 },
@@ -74,7 +74,6 @@ const gallery = [
   { img: kitchen, title: "Kitchen", tag: "Sage · brass", to: "/kitchen" as const },
   { img: bedroom, title: "Bedroom", tag: "Soft retreats", to: "/bedroom" as const },
   { img: dining, title: "Dining", tag: "Conversations", to: "/dining" as const },
-  { img: bathroom, title: "Bathroom", tag: "Marble & calm", to: "/bathroom" as const },
 ];
 
 export function Gallery() {
@@ -270,7 +269,7 @@ export function Why() {
               the founders, not a sales team. Every detail is owned, not outsourced.
             </p>
             <a
-              href="#contact"
+              href={getSectionHref("contact")}
               className="mt-10 inline-flex items-center gap-3 border-b border-forest pb-1 text-sm uppercase tracking-[0.3em] text-forest transition-all hover:gap-5"
             >
               Start your project <span>→</span>

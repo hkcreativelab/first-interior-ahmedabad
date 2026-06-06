@@ -12,6 +12,18 @@ type NodeResponse = {
   end?: (chunk?: string) => void;
 };
 
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
+
+function setCorsHeaders(response?: NodeResponse) {
+  Object.entries(corsHeaders).forEach(([name, value]) => {
+    response?.setHeader?.(name, value);
+  });
+}
+
 type PosterBody = {
   dataUrl?: string;
   reelId?: string;
@@ -53,6 +65,7 @@ async function readJsonBody(request: NodeRequest): Promise<unknown> {
 
 function sendJson(response: NodeResponse, statusCode: number, body: unknown) {
   response.statusCode = statusCode;
+  setCorsHeaders(response);
   response.setHeader?.("Content-Type", "application/json; charset=utf-8");
   response.end?.(JSON.stringify(body));
 }
@@ -74,9 +87,21 @@ function parseDataUrl(dataUrl: string) {
 }
 
 export default async function handler(request: NodeRequest, response?: NodeResponse) {
+  if (request.method === "OPTIONS") {
+    if (response) {
+      response.statusCode = 204;
+      setCorsHeaders(response);
+      response.end?.();
+      return;
+    }
+
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }
+
   if (request.method !== "POST") {
     if (response) {
       response.statusCode = 405;
+      setCorsHeaders(response);
       response.setHeader?.("Allow", "POST");
       response.setHeader?.("Content-Type", "text/plain; charset=utf-8");
       response.end?.("Method not allowed");
@@ -85,7 +110,7 @@ export default async function handler(request: NodeRequest, response?: NodeRespo
 
     return new Response("Method not allowed", {
       status: 405,
-      headers: { Allow: "POST" },
+      headers: { ...corsHeaders, Allow: "POST" },
     });
   }
 
@@ -116,7 +141,7 @@ export default async function handler(request: NodeRequest, response?: NodeRespo
 
     return new Response(JSON.stringify({ url: blob.url }), {
       status: 200,
-      headers: { "Content-Type": "application/json; charset=utf-8" },
+      headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" },
     });
   } catch (error) {
     console.error("Poster upload failed", error);
@@ -127,7 +152,7 @@ export default async function handler(request: NodeRequest, response?: NodeRespo
 
     return new Response(JSON.stringify({ error: "Could not upload poster image" }), {
       status: 500,
-      headers: { "Content-Type": "application/json; charset=utf-8" },
+      headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" },
     });
   }
 }

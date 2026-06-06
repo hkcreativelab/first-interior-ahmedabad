@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
+import { getSectionHref } from "@/lib/hostinger-links";
 
 const rooms = [
   { to: "/living", label: "Living" },
   { to: "/kitchen", label: "Kitchen" },
   { to: "/dining", label: "Dining" },
   { to: "/bedroom", label: "Bedroom" },
-  { to: "/bathroom", label: "Bathroom" },
 ] as const;
 
 const pageLinks = [
@@ -105,7 +105,7 @@ export function Nav() {
             {sectionLinks.map((l) => (
               <li key={l.hash}>
                 <a
-                  href={isHome ? `#${l.hash}` : `/#${l.hash}`}
+                  href={getSectionHref(l.hash)}
                   className="relative after:absolute after:bottom-[-4px] after:left-0 after:h-px after:w-0 after:bg-current after:transition-all hover:after:w-full"
                 >
                   {l.label}
@@ -143,7 +143,7 @@ export function Nav() {
           {sectionLinks.map((l) => (
             <a
               key={l.hash}
-              href={isHome ? `#${l.hash}` : `/#${l.hash}`}
+              href={getSectionHref(l.hash)}
               className="rounded-lg border border-border bg-background px-3 py-2 text-xs font-medium text-ink transition hover:border-forest hover:bg-forest/5 sm:px-4 sm:py-3 sm:text-sm"
             >
               {l.label}

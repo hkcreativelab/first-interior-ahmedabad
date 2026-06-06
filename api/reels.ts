@@ -15,13 +15,6 @@ type BlobListEntry = {
   pathname: string;
 };
 
-type ReelsGlobal = typeof globalThis & {
-  __firstInteriorsReels?: {
-    reels: Reel[];
-    source: string;
-  };
-};
-
 const defaultReels: Reel[] = [
   {
     id: "luxury-kitchen-tour",
@@ -115,11 +108,6 @@ function normalizeReels(input: unknown): Reel[] {
 }
 
 async function readStoredReels(): Promise<{ reels: Reel[]; source: string }> {
-  const cachedReels = (globalThis as ReelsGlobal).__firstInteriorsReels;
-  if (cachedReels) {
-    return cachedReels;
-  }
-
   const token = getBlobToken();
   if (!token) {
     return { reels: defaultReels, source: "defaults:no-token" };
@@ -182,11 +170,6 @@ async function writeStoredReels(reels: Reel[]): Promise<Reel[]> {
     token,
   });
 
-  (globalThis as ReelsGlobal).__firstInteriorsReels = {
-    reels: normalizedReels,
-    source: statePath,
-  };
-
   return normalizedReels;
 }
 
@@ -201,6 +184,18 @@ type NodeResponse = {
   setHeader?: (name: string, value: string) => void;
   end?: (chunk?: string) => void;
 };
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+};
+
+function setCorsHeaders(response?: NodeResponse) {
+  Object.entries(corsHeaders).forEach(([name, value]) => {
+    response?.setHeader?.(name, value);
+  });
+}
 
 async function readJsonBody(request: NodeRequest): Promise<unknown> {
   if (request.body !== undefined) {
@@ -234,19 +229,33 @@ async function readJsonBody(request: NodeRequest): Promise<unknown> {
 
 function sendJson(response: NodeResponse, statusCode: number, body: unknown) {
   response.statusCode = statusCode;
+  setCorsHeaders(response);
   response.setHeader?.("Content-Type", "application/json; charset=utf-8");
+  response.setHeader?.("Cache-Control", "no-store, max-age=0");
   response.end?.(JSON.stringify(body));
 }
 
 function sendReels(response: NodeResponse, reels: Reel[], source: string) {
   response.statusCode = 200;
+  setCorsHeaders(response);
   response.setHeader?.("Content-Type", "application/json; charset=utf-8");
+  response.setHeader?.("Cache-Control", "no-store, max-age=0");
   response.setHeader?.("X-Reels-Source", source);
   response.end?.(JSON.stringify(reels));
 }
 
 export default async function handler(request: NodeRequest, response?: NodeResponse) {
   try {
+    if (request.method === "OPTIONS") {
+      if (response) {
+        response.statusCode = 204;
+        setCorsHeaders(response);
+        response.end?.();
+        return;
+      }
+      return new Response(null, { status: 204, headers: corsHeaders });
+    }
+
     if (request.method === "GET") {
       const { reels, source } = await readStoredReels();
       if (response) {
@@ -256,7 +265,9 @@ export default async function handler(request: NodeRequest, response?: NodeRespo
       return new Response(JSON.stringify(reels), {
         status: 200,
         headers: {
+          ...corsHeaders,
           "Content-Type": "application/json; charset=utf-8",
+          "Cache-Control": "no-store, max-age=0",
           "X-Reels-Source": source,
         },
       });
@@ -271,12 +282,13 @@ export default async function handler(request: NodeRequest, response?: NodeRespo
       }
       return new Response(JSON.stringify(savedReels), {
         status: 200,
-        headers: { "Content-Type": "application/json; charset=utf-8" },
+        headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" },
       });
     }
 
     if (response) {
       response.statusCode = 405;
+      setCorsHeaders(response);
       response.setHeader?.("Allow", "GET, POST");
       response.setHeader?.("Content-Type", "text/plain; charset=utf-8");
       response.end?.("Method not allowed");
@@ -285,7 +297,7 @@ export default async function handler(request: NodeRequest, response?: NodeRespo
 
     return new Response("Method not allowed", {
       status: 405,
-      headers: { Allow: "GET, POST" },
+      headers: { ...corsHeaders, Allow: "GET, POST" },
     });
   } catch (error) {
     console.error("Reels API failed", error);
@@ -296,7 +308,7 @@ export default async function handler(request: NodeRequest, response?: NodeRespo
       }
       return new Response(JSON.stringify({ error: "Could not save reels" }), {
         status: 500,
-        headers: { "Content-Type": "application/json; charset=utf-8" },
+        headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" },
       });
     }
 
@@ -306,7 +318,7 @@ export default async function handler(request: NodeRequest, response?: NodeRespo
     }
     return new Response(JSON.stringify(defaultReels), {
       status: 200,
-      headers: { "Content-Type": "application/json; charset=utf-8" },
+      headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" },
     });
   }
 }
