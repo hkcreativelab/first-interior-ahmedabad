@@ -1,0 +1,11 @@
+{
+  "private": true,
+  "name": "first-interior-backend",
+  "type": "module",
+  "scripts": {
+    "info": "echo Backend files are in backend/ and can be deployed via Vercel or Wrangler depending on your deployment setup"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.3"
+  }
+}
