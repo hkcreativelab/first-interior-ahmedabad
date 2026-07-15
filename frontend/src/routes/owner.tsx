@@ -3,7 +3,14 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Footer } from "@/components/Footer";
 import { Nav } from "@/components/Nav";
 import { getApiUrl } from "@/lib/api-base";
-import { sanitizeReels, type Reel } from "@/lib/reels-data";
+import { sanitizeVideos, type Video } from "@/lib/videos-data";
+import {
+  getStoredVideos,
+  isOwnerAuthenticated,
+  saveStoredVideos,
+  setOwnerAuthenticated,
+  validateOwnerCredentials,
+} from "@/lib/owner-storage";
 
 export const Route = createFileRoute("/owner")({
   head: () => ({
@@ -12,17 +19,16 @@ export const Route = createFileRoute("/owner")({
       {
         name: "description",
         content:
-          "Owner portal for First Interiors to add, edit and delete reels with passcode access.",
+          "Owner portal for First Interiors to add, edit and delete videos with secure login.",
       },
     ],
   }),
   component: OwnerPortalPage,
 });
 
-const PASSCODE_KEY = "first-interiors-owner-passcode";
-const DEFAULT_PASSCODE = "owner240";
-const REELS_API = "/api/reels";
-const POSTER_API = "/api/reel-poster";
+const OWNER_LOGIN_API = "/api/owner-login";
+const VIDEOS_API = "/api/videos";
+const POSTER_API = "/api/video-poster";
 const MAX_POSTER_SIZE = 1200;
 const POSTER_QUALITY = 0.82;
 
@@ -62,12 +68,10 @@ function resizePosterImage(file: File): Promise<string> {
 
 function OwnerPortalPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [passcodeInput, setPasscodeInput] = useState("");
+  const [usernameInput, setUsernameInput] = useState("");
+  const [passwordInput, setPasswordInput] = useState("");
   const [message, setMessage] = useState("");
-  const [reels, setReels] = useState<Reel[]>([]);
-  const [savedPasscode, setSavedPasscode] = useState(DEFAULT_PASSCODE);
-  const [newPasscode, setNewPasscode] = useState("");
-  const [currentPasscode, setCurrentPasscode] = useState("");
+  const [videos, setVideos] = useState<Video[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isProcessingPoster, setIsProcessingPoster] = useState(false);
   const [formState, setFormState] = useState({
@@ -80,74 +84,117 @@ function OwnerPortalPage() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const storedPass = window.localStorage.getItem(PASSCODE_KEY);
-    const initialPasscode = storedPass || DEFAULT_PASSCODE;
-    if (!storedPass) {
-      window.localStorage.setItem(PASSCODE_KEY, initialPasscode);
-    }
-    setSavedPasscode(initialPasscode);
-
-    if (window.sessionStorage.getItem("first-interiors-owner-auth") === "true") {
+    if (isOwnerAuthenticated()) {
       setIsAuthenticated(true);
     }
 
-    void loadReels();
+    void loadVideos();
   }, []);
 
-  const hasReels = useMemo(() => reels.length > 0, [reels]);
+  const hasVideos = useMemo(() => videos.length > 0, [videos]);
 
-  async function loadReels() {
+  async function loadVideos() {
     try {
-      const response = await fetch(getApiUrl(`${REELS_API}?fresh=${Date.now()}`), {
+      if (!isRemoteApiAvailable()) {
+        throw new Error("Local fallback mode");
+      }
+
+      const response = await fetch(getApiUrl(`${VIDEOS_API}?fresh=${Date.now()}`), {
         cache: "no-store",
       });
-      if (!response.ok) throw new Error("Failed to load reels");
-      const nextReels = sanitizeReels(await response.json());
-      setReels(nextReels);
+      if (!response.ok) throw new Error("Failed to load videos");
+      const nextVideos = sanitizeVideos(await response.json());
+      setVideos(nextVideos);
+      saveStoredVideos(nextVideos);
     } catch {
-      setReels([]);
+      setVideos(getStoredVideos());
     }
   }
 
-  async function saveReels(nextReels: Reel[]) {
+  async function saveVideos(nextVideos: Video[]) {
     setIsSaving(true);
     try {
-      const response = await fetch(getApiUrl(REELS_API), {
+      if (!isRemoteApiAvailable()) {
+        const sanitizedVideos = sanitizeVideos(nextVideos);
+        saveStoredVideos(sanitizedVideos);
+        setVideos(sanitizedVideos);
+        return true;
+      }
+
+      const response = await fetch(getApiUrl(VIDEOS_API), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(nextReels),
+        body: JSON.stringify(nextVideos),
       });
       if (!response.ok) {
-        throw new Error("Failed to save reels");
+        throw new Error("Failed to save videos");
       }
-      const savedReels = sanitizeReels(await response.json());
-      setReels(savedReels);
+      const savedVideos = sanitizeVideos(await response.json());
+      saveStoredVideos(savedVideos);
+      setVideos(savedVideos);
       return true;
     } catch {
-      setMessage("Could not save reels to shared storage. Please try again.");
-      return false;
+      const fallbackVideos = sanitizeVideos(nextVideos);
+      saveStoredVideos(fallbackVideos);
+      setVideos(fallbackVideos);
+      setMessage("Saved locally in this browser. The shared remote storage is unavailable.");
+      return true;
     } finally {
       setIsSaving(false);
     }
   }
 
-  const handleLogin = (event: FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (passcodeInput.trim() === savedPasscode) {
-      setIsAuthenticated(true);
-      setMessage("Access granted. You can add or delete reels now.");
-      if (typeof window !== "undefined") {
-        window.sessionStorage.setItem("first-interiors-owner-auth", "true");
-      }
-      setPasscodeInput("");
+    if (!usernameInput.trim() || !passwordInput.trim()) {
+      setMessage("Username and password are required.");
       return;
     }
-    setMessage("Passcode is incorrect. Please try again.");
+
+    try {
+      if (!isRemoteApiAvailable()) {
+        if (!validateOwnerCredentials(usernameInput, passwordInput)) {
+          setMessage("Invalid credentials. Please try again.");
+          return;
+        }
+
+        setIsAuthenticated(true);
+        setOwnerAuthenticated(true);
+        setMessage("Access granted. You can add or delete videos now.");
+        setUsernameInput("");
+        setPasswordInput("");
+        return;
+      }
+
+      const response = await fetch(getApiUrl(OWNER_LOGIN_API), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username: usernameInput.trim(),
+          password: passwordInput.trim(),
+        }),
+      });
+
+      if (!response.ok) {
+        setMessage("Invalid credentials. Please try again.");
+        return;
+      }
+
+      setIsAuthenticated(true);
+      setOwnerAuthenticated(true);
+      setMessage("Access granted. You can add or delete videos now.");
+      setUsernameInput("");
+      setPasswordInput("");
+    } catch {
+      setMessage("Could not authenticate. Please try again.");
+    }
   };
 
-  async function uploadPoster(reelId: string, dataUrl: string) {
+  async function uploadPoster(videoId: string, dataUrl: string) {
     if (!dataUrl.startsWith("data:")) {
       return dataUrl;
     }
@@ -157,7 +204,7 @@ function OwnerPortalPage() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ reelId, dataUrl }),
+      body: JSON.stringify({ videoId, dataUrl }),
     });
 
     if (!response.ok) {
@@ -191,28 +238,28 @@ function OwnerPortalPage() {
     }
   };
 
-  const handleAddReel = async (event: FormEvent<HTMLFormElement>) => {
+  const handleAddVideo = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!formState.title.trim() || !formState.url.trim() || !formState.thumbnail) {
-      setMessage("Title, URL and poster image are required to add a reel.");
+      setMessage("Title, URL and poster image are required to add a video.");
       return;
     }
 
-    const reelId = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const videoId = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
     setIsSaving(true);
 
     let posterUrl: string;
     try {
-      posterUrl = await uploadPoster(reelId, formState.thumbnail);
+      posterUrl = await uploadPoster(videoId, formState.thumbnail);
     } catch {
       setIsSaving(false);
       setMessage("Could not upload poster image. Please try a smaller image.");
       return;
     }
 
-    const nextReels = [
+    const nextVideos = [
       {
-        id: reelId,
+        id: videoId,
         title: formState.title.trim(),
         description: formState.description.trim(),
         url: formState.url.trim(),
@@ -220,39 +267,21 @@ function OwnerPortalPage() {
         views: "0",
         comments: "0",
       },
-      ...reels,
+      ...videos,
     ];
 
-    const saved = await saveReels(nextReels);
+    const saved = await saveVideos(nextVideos);
     if (!saved) return;
     setFormState({ title: "", description: "", url: "", thumbnail: "" });
-    setMessage("Reel saved successfully.");
+    setMessage("Video saved successfully.");
   };
 
   const handleDelete = async (id: string) => {
-    const saved = await saveReels(reels.filter((reel) => reel.id !== id));
+    const saved = await saveVideos(videos.filter((video) => video.id !== id));
     if (!saved) return;
-    setMessage("Reel deleted.");
+    setMessage("Video deleted.");
   };
 
-  const handleChangePasscode = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (currentPasscode.trim() !== savedPasscode) {
-      setMessage("Current passcode does not match.");
-      return;
-    }
-    if (!newPasscode.trim()) {
-      setMessage("Enter a new passcode to update.");
-      return;
-    }
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(PASSCODE_KEY, newPasscode);
-    }
-    setSavedPasscode(newPasscode);
-    setCurrentPasscode("");
-    setNewPasscode("");
-    setMessage("Passcode updated successfully.");
-  };
 
   return (
     <div className="relative min-h-screen bg-background text-ink">
@@ -267,16 +296,16 @@ function OwnerPortalPage() {
                 Secure admin access
               </h1>
               <p className="mt-3 sm:mt-4 md:mt-5 text-xs sm:text-sm leading-relaxed text-sand/80">
-                This portal is reserved for the First Interiors team. Enter your passcode to manage
-                the public reels collection and update the owner access code.
+                This portal is reserved for the First Interiors team. Sign in to manage the public video
+                collection and keep content fresh.
               </p>
               <div className="mt-6 sm:mt-7 md:mt-8 rounded-lg sm:rounded-xl md:rounded-[1.5rem] bg-ink/10 p-4 sm:p-5 md:p-6 text-xs sm:text-sm text-cream/80">
                 <p className="font-semibold text-cream text-sm sm:text-base">Portal features</p>
                 <ul className="mt-3 sm:mt-4 space-y-2 sm:space-y-3 text-ink/70">
-                  <li>• Add new reel entries</li>
+                  <li>• Add new video entries</li>
                   <li>• Delete outdated videos</li>
-                  <li>• Change the secure passcode</li>
-                  <li>• Review current reel count</li>
+                  <li>• Review current video count</li>
+                  <li>• Keep published content updated</li>
                 </ul>
               </div>
             </div>
@@ -291,7 +320,7 @@ function OwnerPortalPage() {
                     <div>
                       <p className="text-xs uppercase tracking-[0.3em] text-ink/60">Owner login</p>
                       <p className="text-base sm:text-lg font-semibold text-ink">
-                        Enter passcode to unlock the portal.
+                        Enter your owner credentials to unlock the portal.
                       </p>
                     </div>
                   </div>
@@ -301,13 +330,23 @@ function OwnerPortalPage() {
                     className="mt-6 sm:mt-7 md:mt-8 space-y-4 sm:space-y-5"
                   >
                     <label className="block text-xs sm:text-sm font-medium text-ink">
-                      Passcode
+                      Username
+                      <input
+                        type="text"
+                        value={usernameInput}
+                        onChange={(event) => setUsernameInput(event.target.value)}
+                        className="mt-2 sm:mt-3 w-full rounded-lg sm:rounded-2xl md:rounded-3xl border border-border bg-cream px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm outline-none transition focus:border-forest"
+                        placeholder="Owner username"
+                      />
+                    </label>
+                    <label className="block text-xs sm:text-sm font-medium text-ink">
+                      Password
                       <input
                         type="password"
-                        value={passcodeInput}
-                        onChange={(event) => setPasscodeInput(event.target.value)}
+                        value={passwordInput}
+                        onChange={(event) => setPasswordInput(event.target.value)}
                         className="mt-2 sm:mt-3 w-full rounded-lg sm:rounded-2xl md:rounded-3xl border border-border bg-cream px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm outline-none transition focus:border-forest"
-                        placeholder="Enter passcode"
+                        placeholder="Owner password"
                       />
                     </label>
                     {message ? <p className="text-xs sm:text-sm text-ink">{message}</p> : null}
@@ -322,19 +361,17 @@ function OwnerPortalPage() {
                     <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <p className="text-xs uppercase tracking-[0.35em] text-ink/60">
-                          Reel management
+                          Video management
                         </p>
                         <h2 className="text-xl sm:text-2xl md:text-3xl font-semibold text-ink">
-                          Add new reel
+                          Add new video
                         </h2>
                       </div>
                       <button
                         type="button"
                         onClick={() => {
                           setIsAuthenticated(false);
-                          if (typeof window !== "undefined") {
-                            window.sessionStorage.removeItem("first-interiors-owner-auth");
-                          }
+                          setOwnerAuthenticated(false);
                         }}
                         className="rounded-full border border-border bg-cream/80 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-ink transition hover:bg-cream/90"
                       >
@@ -343,7 +380,7 @@ function OwnerPortalPage() {
                     </div>
 
                     <form
-                      onSubmit={handleAddReel}
+                      onSubmit={handleAddVideo}
                       className="grid gap-4 sm:gap-5 mt-6 sm:mt-7 md:mt-8"
                     >
                       <label className="block text-xs sm:text-sm text-ink">
@@ -354,7 +391,7 @@ function OwnerPortalPage() {
                             setFormState((prev) => ({ ...prev, title: event.target.value }))
                           }
                           className="mt-2 sm:mt-3 w-full rounded-lg sm:rounded-2xl md:rounded-3xl border border-border bg-cream px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm outline-none transition focus:border-forest"
-                          placeholder="Modern living room reveal"
+                          placeholder="Modern living room video"
                         />
                       </label>
 
@@ -366,7 +403,7 @@ function OwnerPortalPage() {
                             setFormState((prev) => ({ ...prev, description: event.target.value }))
                           }
                           className="mt-2 sm:mt-3 w-full min-h-[100px] sm:min-h-[120px] rounded-lg sm:rounded-2xl md:rounded-3xl border border-border bg-cream px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm outline-none transition focus:border-forest"
-                          placeholder="Optional caption for the reel"
+                          placeholder="Optional caption for the video"
                         />
                       </label>
 
@@ -378,7 +415,7 @@ function OwnerPortalPage() {
                             setFormState((prev) => ({ ...prev, url: event.target.value }))
                           }
                           className="mt-2 sm:mt-3 w-full rounded-lg sm:rounded-2xl md:rounded-3xl border border-border bg-cream px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm outline-none transition focus:border-forest"
-                          placeholder="https://www.instagram.com/reel/..."
+                          placeholder="https://www.example.com/video/..."
                         />
                       </label>
 
@@ -398,7 +435,7 @@ function OwnerPortalPage() {
                           <p className="text-xs uppercase tracking-[0.35em] text-ink/60">Preview</p>
                           <img
                             src={formState.thumbnail}
-                            alt="Reel poster preview"
+                            alt="Video poster preview"
                             className="mt-2 sm:mt-3 h-40 sm:h-48 w-full rounded-lg sm:rounded-2xl md:rounded-3xl object-cover"
                           />
                         </div>
@@ -413,7 +450,7 @@ function OwnerPortalPage() {
                           ? "Preparing poster..."
                           : isSaving
                             ? "Saving..."
-                            : "Add reel"}
+                            : "Add video"}
                       </button>
                     </form>
                   </div>
@@ -422,20 +459,20 @@ function OwnerPortalPage() {
                     <div className="space-y-5 sm:space-y-6 md:space-y-8 max-w-full">
                       <div className="rounded-lg sm:rounded-2xl md:rounded-3xl bg-cream/80 p-4 sm:p-5 md:p-6 text-ink">
                         <p className="font-semibold text-sm sm:text-base text-ink">
-                          Live reel management
+                          Live video management
                         </p>
                         <p className="mt-2 sm:mt-3 text-xs sm:text-sm text-ink/70">
-                          Delete outdated entries, review the current reel count, and update the
-                          portal passcode from one place.
+                          Delete outdated entries, review the current video count, and manage
+                          published content from one place.
                         </p>
                       </div>
 
                       <div className="rounded-lg sm:rounded-2xl md:rounded-3xl border border-border bg-cream p-4 sm:p-5 md:p-6">
                         <p className="text-xs uppercase tracking-[0.35em] text-ink/60">
-                          Reel count
+                          Video count
                         </p>
                         <p className="mt-3 sm:mt-4 text-2xl sm:text-3xl md:text-4xl font-semibold text-ink">
-                          {reels.length}
+                          {videos.length}
                         </p>
                       </div>
 
@@ -443,7 +480,7 @@ function OwnerPortalPage() {
                         <div className="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-start sm:justify-between">
                           <div>
                             <p className="text-xs uppercase tracking-[0.35em] text-ink/60">
-                              Delete reels
+                              Delete videos
                             </p>
                             <p className="mt-2 sm:mt-3 text-xs sm:text-sm text-ink/70">
                               Remove outdated entries from the public collection.
@@ -451,25 +488,25 @@ function OwnerPortalPage() {
                           </div>
                         </div>
 
-                        {hasReels ? (
+                        {hasVideos ? (
                           <div className="mt-4 sm:mt-5 md:mt-6 space-y-3 sm:space-y-4 max-w-full overflow-x-hidden">
-                            {reels.map((reel) => (
+                            {videos.map((video) => (
                               <div
-                                key={reel.id}
+                                key={video.id}
                                 className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-lg sm:rounded-2xl md:rounded-3xl border border-border bg-cream/50 p-3 sm:p-4 md:p-5 min-w-0"
                               >
                                 <div className="min-w-0 flex-1">
                                   <p className="font-semibold text-xs sm:text-sm text-ink truncate">
-                                    {reel.title}
+                                    {video.title}
                                   </p>
                                   <p className="text-xs sm:text-sm text-ink/70 truncate mt-1">
-                                    {reel.url}
+                                    {video.url}
                                   </p>
                                 </div>
                                 <button
                                   disabled={isSaving}
                                   type="button"
-                                  onClick={() => handleDelete(reel.id)}
+                                  onClick={() => handleDelete(video.id)}
                                   className="w-full sm:w-auto rounded-full border border-border bg-cream/80 px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold text-ink transition hover:bg-cream/90 disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                   {isSaving ? "Saving..." : "Delete"}
@@ -479,7 +516,7 @@ function OwnerPortalPage() {
                           </div>
                         ) : (
                           <p className="mt-4 sm:mt-5 text-xs sm:text-sm text-ink/70">
-                            No reels have been added yet.
+                            No videos have been added yet.
                           </p>
                         )}
                       </div>
@@ -487,38 +524,12 @@ function OwnerPortalPage() {
                       <div className="space-y-3 sm:space-y-4 md:space-y-5">
                         <div>
                           <p className="text-xs sm:text-sm font-semibold text-ink">
-                            Change passcode
+                            Owner management
                           </p>
                           <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-ink/70">
-                            Update the password for owner access.
+                            Manage videos directly from the owner portal.
                           </p>
                         </div>
-
-                        <form
-                          onSubmit={handleChangePasscode}
-                          className="grid gap-3 sm:gap-4 md:gap-5"
-                        >
-                          <input
-                            type="password"
-                            value={currentPasscode}
-                            onChange={(event) => setCurrentPasscode(event.target.value)}
-                            placeholder="Current passcode"
-                            className="w-full rounded-lg sm:rounded-2xl md:rounded-3xl border border-border bg-cream px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm outline-none transition focus:border-forest"
-                          />
-                          <input
-                            type="password"
-                            value={newPasscode}
-                            onChange={(event) => setNewPasscode(event.target.value)}
-                            placeholder="New passcode"
-                            className="w-full rounded-lg sm:rounded-2xl md:rounded-3xl border border-border bg-cream px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm outline-none transition focus:border-forest"
-                          />
-                          <button
-                            type="submit"
-                            className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-forest px-4 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-semibold text-cream transition hover:bg-ink"
-                          >
-                            Update passcode
-                          </button>
-                        </form>
                       </div>
 
                       {message ? <p className="text-xs sm:text-sm text-forest">{message}</p> : null}

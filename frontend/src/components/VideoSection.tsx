@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { Heart, MessageCircle, Play } from "lucide-react";
-import { sanitizeReels, type Reel } from "@/lib/reels-data";
-import { getApiUrl } from "@/lib/api-base";
+import { type Video } from "@/lib/videos-data";
+import { getApiUrl, isRemoteApiAvailable } from "@/lib/api-base";
+import { getStoredVideos } from "@/lib/owner-storage";
 
 const placeholderThumbnail =
   "data:image/svg+xml;charset=UTF-8," +
@@ -11,66 +12,70 @@ const placeholderThumbnail =
     '<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="800"><rect width="1200" height="800" fill="#f5f5f5"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Inter, sans-serif" font-size="44" fill="#9ca3af">Poster image unavailable</text></svg>',
   );
 
-export function ReelsSection({
+export function VideoSection({
   maxItems = 3,
   showCta = true,
 }: {
   maxItems?: number;
   showCta?: boolean;
 }) {
-  const [reels, setReels] = useState<Reel[] | null>(null);
+  const [videos, setVideos] = useState<Video[] | null>(null);
 
   useEffect(() => {
     let isMounted = true;
 
-    async function loadReels() {
+    async function loadVideos() {
       try {
-        const response = await fetch(getApiUrl(`/api/reels?fresh=${Date.now()}`), {
+        if (!isRemoteApiAvailable()) {
+          throw new Error("Local fallback mode");
+        }
+
+        const response = await fetch(getApiUrl(`/api/videos?fresh=${Date.now()}`), {
           cache: "no-store",
         });
-        if (!response.ok) throw new Error("Failed to load reels");
-        const nextReels = sanitizeReels(await response.json());
+        if (!response.ok) throw new Error("Failed to load videos");
+        const nextVideos = await response.json();
         if (isMounted) {
-          setReels(nextReels);
+          setVideos(nextVideos);
         }
       } catch {
         if (isMounted) {
-          setReels([]);
+          setVideos(getStoredVideos());
         }
       }
     }
 
-    void loadReels();
+    void loadVideos();
 
     return () => {
       isMounted = false;
     };
   }, []);
 
-  const visibleReels = reels?.slice(0, maxItems) ?? [];
+  const visibleVideos = videos?.slice(0, maxItems) ?? [];
 
   return (
-    <section id="reels" className="bg-cream py-24 text-ink">
+    <section id="videos" className="bg-cream py-24 text-ink">
       <div className="mx-auto max-w-7xl px-6">
         <div className="mb-14 text-center">
           <p className="mb-3 text-sm uppercase tracking-[0.35em] text-forest/70">VIDEO PORTFOLIO</p>
           <h2 className="font-display text-4xl font-semibold leading-tight text-ink sm:text-5xl lg:text-6xl">
-            Explore Our Spaces Through Reels
+            Explore Our Spaces Through Videos
           </h2>
           <p className="mx-auto mt-5 max-w-2xl text-base leading-relaxed text-ink/70">
             Watch short video tours of our completed designs and behind-the-scenes transformations.
           </p>
         </div>
 
-        {reels === null ? (
+        {videos === null ? (
           <div className="rounded-[2rem] border border-ink/10 bg-cream p-8 text-center text-ink/70">
-            Loading reels...
+            Loading videos...
           </div>
-        ) : visibleReels.length > 0 ? (
+        ) : visibleVideos.length > 0 ? (
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {visibleReels.map((reel, index) => (
+            {visibleVideos.map((video, index) => (
               <motion.article
-                key={reel.id}
+                key={video.id}
                 initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -79,13 +84,13 @@ export function ReelsSection({
               >
                 <div className="relative overflow-hidden pb-[140%] sm:pb-[120%]">
                   <img
-                    src={reel.thumbnail || placeholderThumbnail}
-                    alt={reel.title}
+                    src={video.thumbnail || placeholderThumbnail}
+                    alt={video.title}
                     className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1.4s] ease-out group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/20 to-transparent" />
                   <a
-                    href={reel.url}
+                    href={video.url}
                     target="_blank"
                     rel="noreferrer"
                     className="absolute inset-0 flex items-center justify-center"
@@ -99,21 +104,21 @@ export function ReelsSection({
                 <div className="space-y-4 p-6 sm:p-8">
                   <div>
                     <h3 className="text-3xl font-semibold tracking-tight text-cream">
-                      {reel.title}
+                      {video.title}
                     </h3>
                     <p className="mt-2 text-base leading-relaxed text-cream/90">
-                      {reel.description}
+                      {video.description}
                     </p>
                   </div>
 
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="inline-flex items-center gap-2 rounded-3xl bg-ink/80 px-4 py-3 text-base text-cream">
                       <Heart className="h-4 w-4 text-red-400" />
-                      <span>{reel.views}</span>
+                      <span>{video.views}</span>
                     </div>
                     <div className="inline-flex items-center gap-2 rounded-3xl bg-ink/80 px-4 py-3 text-base text-cream">
                       <MessageCircle className="h-4 w-4 text-cream/70" />
-                      <span>{reel.comments}</span>
+                      <span>{video.comments}</span>
                     </div>
                   </div>
                 </div>
@@ -122,14 +127,14 @@ export function ReelsSection({
           </div>
         ) : (
           <div className="rounded-[2rem] border border-ink/10 bg-cream p-8 text-center text-ink/70">
-            No reels are published right now.
+            No videos are published right now.
           </div>
         )}
 
         {showCta && (
           <div className="mt-12 flex flex-col items-center gap-4 text-center sm:flex-row sm:justify-between sm:text-left">
             <p className="max-w-2xl text-base text-ink/70">
-              Want to explore every reel? Visit the owner portal to add new videos or see the full
+              Want to explore every video? Visit the owner portal to add new videos or see the full
               collection.
             </p>
             <div className="flex flex-wrap justify-center gap-3">
@@ -137,7 +142,7 @@ export function ReelsSection({
                 to="/reels"
                 className="rounded-full border border-forest bg-forest px-6 py-3 text-base font-semibold text-cream transition hover:bg-ink"
               >
-                View all reels
+                View all videos
               </Link>
               <Link
                 to="/owner"

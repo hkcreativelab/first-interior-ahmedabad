@@ -1,4 +1,10 @@
-import { put } from "@vercel/blob";
+import { get } from "@vercel/blob";
+
+type OwnerUser = {
+  username: string;
+  password: string;
+  createdAt: string;
+};
 
 type NodeRequest = {
   method?: string;
@@ -12,6 +18,8 @@ type NodeResponse = {
   end?: (chunk?: string) => void;
 };
 
+const USERS_BLOB_PATH = "owner-users/users.json";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -24,28 +32,16 @@ function setCorsHeaders(response?: NodeResponse) {
   });
 }
 
-type PosterBody = {
-  dataUrl?: string;
-  reelId?: string;
-  videoId?: string;
-};
-
 function getBlobToken() {
   return process.env.BLOB_READ_WRITE_TOKEN;
 }
 
 async function readJsonBody(request: NodeRequest): Promise<unknown> {
   if (request.body !== undefined) {
-    if (typeof request.body === "string") {
-      return JSON.parse(request.body);
-    }
-
-    return request.body;
+    return typeof request.body === "string" ? JSON.parse(request.body) : request.body;
   }
 
-  if (typeof request.on !== "function") {
-    return undefined;
-  }
+  if (typeof request.on !== "function") return undefined;
 
   const chunks: Buffer[] = [];
   await new Promise<void>((resolve, reject) => {
@@ -71,20 +67,53 @@ function sendJson(response: NodeResponse, statusCode: number, body: unknown) {
   response.end?.(JSON.stringify(body));
 }
 
-function parseDataUrl(dataUrl: string) {
-  const match = dataUrl.match(/^data:(image\/(?:jpeg|jpg|png|webp));base64,(.+)$/);
-  if (!match) {
-    throw new Error("Invalid poster image.");
+function normalizeUsers(input: unknown): OwnerUser[] {
+  if (!Array.isArray(input)) return [];
+
+  return input
+    .filter((item): item is OwnerUser => {
+      if (!item || typeof item !== "object") return false;
+      const user = item as OwnerUser;
+      return (
+        typeof user.username === "string" &&
+        typeof user.password === "string" &&
+        typeof user.createdAt === "string"
+      );
+    })
+    .map((user) => ({
+      username: user.username,
+      password: user.password,
+      createdAt: user.createdAt,
+    }));
+}
+
+async function readStoredUsers(): Promise<OwnerUser[]> {
+  const token = getBlobToken();
+  if (!token) {
+    throw new Error("BLOB_READ_WRITE_TOKEN is missing");
   }
 
-  const contentType = match[1] === "image/jpg" ? "image/jpeg" : match[1];
-  const extension = contentType.split("/")[1].replace("jpeg", "jpg");
+  try {
+    const result = await get(USERS_BLOB_PATH, {
+      access: "public",
+      token,
+    });
 
-  return {
-    contentType,
-    extension,
-    buffer: Buffer.from(match[2], "base64"),
-  };
+    if (result?.statusCode === 200 && result.stream) {
+      const parsed = (await new Response(result.stream).json()) as unknown;
+      return normalizeUsers(parsed);
+    }
+  } catch (error) {
+    console.error("Failed to read owner users blob", error);
+  }
+
+  return [
+    {
+      username: "owner",
+      password: "owner240",
+      createdAt: new Date().toISOString(),
+    },
+  ];
 }
 
 export default async function handler(request: NodeRequest, response?: NodeResponse) {
@@ -116,43 +145,49 @@ export default async function handler(request: NodeRequest, response?: NodeRespo
   }
 
   try {
-    const token = getBlobToken();
-    if (!token) {
-      throw new Error("BLOB_READ_WRITE_TOKEN is missing");
+    const body = (await readJsonBody(request)) as {
+      username?: string;
+      password?: string;
+    } | null;
+
+    if (!body?.username || !body.password) {
+      throw new Error("Username and password are required.");
     }
 
-    const body = (await readJsonBody(request)) as PosterBody;
-    const videoId = body.reelId || body.videoId;
-    if (!body?.dataUrl || !videoId) {
-      throw new Error("Poster image and video ID are required.");
-    }
+    const users = await readStoredUsers();
+    const matchedUser = users.find(
+      (user) => user.username === body.username && user.password === body.password,
+    );
 
-    const poster = parseDataUrl(body.dataUrl);
-    const blob = await put(`reels/posters/${videoId}.${poster.extension}`, poster.buffer, {
-      access: "public",
-      contentType: poster.contentType,
-      addRandomSuffix: false,
-      allowOverwrite: true,
-      token,
-    });
+    if (!matchedUser) {
+      if (response) {
+        sendJson(response, 401, { error: "Invalid credentials" });
+        return;
+      }
+
+      return new Response(JSON.stringify({ error: "Invalid credentials" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" },
+      });
+    }
 
     if (response) {
-      sendJson(response, 200, { url: blob.url });
+      sendJson(response, 200, { success: true, username: matchedUser.username });
       return;
     }
 
-    return new Response(JSON.stringify({ url: blob.url }), {
+    return new Response(JSON.stringify({ success: true, username: matchedUser.username }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" },
     });
   } catch (error) {
-    console.error("Poster upload failed", error);
+    console.error("Owner login failed", error);
     if (response) {
-      sendJson(response, 500, { error: "Could not upload poster image" });
+      sendJson(response, 500, { error: "Could not authenticate owner" });
       return;
     }
 
-    return new Response(JSON.stringify({ error: "Could not upload poster image" }), {
+    return new Response(JSON.stringify({ error: "Could not authenticate owner" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" },
     });

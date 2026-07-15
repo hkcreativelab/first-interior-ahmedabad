@@ -29,7 +29,7 @@ export function Footer() {
               </li>
               <li>
                 <Link to="/reels" className="hover:text-sand transition-colors">
-                  Reels
+                  Videos
                 </Link>
               </li>
               <li>
@@ -49,7 +49,7 @@ export function Footer() {
             <p className="mb-5 text-sm uppercase tracking-[0.35em] text-cream/60">Contact</p>
             <div className="space-y-4 text-base text-cream/80">
               <div>
-                <p className="font-medium text-cream">Studio</p>
+                <p className="font-medium text-cream">Office</p>
                 <p>102, Capital Crown, Near Raysan Metro Station, Raysan, Gandhinagar</p>
               </div>
               <div>

@@ -1,9 +1,9 @@
 import { motion, type Variants } from "motion/react";
 import { Link } from "@tanstack/react-router";
-import livingRoom from "@/assets/living-room.webp";
-import kitchen from "@/assets/kitchen.webp";
-import bedroom from "@/assets/bedroom.webp";
-import dining from "@/assets/dining.webp";
+import livingRoom from "@/assets/living room 1.jpeg";
+import kitchen from "@/assets/kitchen 2.jpg";
+import bedroom from "@/assets/bed room 1.jpg";
+import dining from "@/assets/dining 1.png";
 import type { FormEvent } from "react";
 import { getSectionHref } from "@/lib/hostinger-links";
 
@@ -239,7 +239,7 @@ export function Services() {
             — 02 / Site Services
           </p>
           <h2 className="font-display text-5xl font-light leading-tight md:text-7xl">
-            End-to-end interior <em className="italic text-sand">solutions</em>.
+            End-to-end interior <em className="italic text-cream/80">solutions</em>.
           </h2>
           <p className="mt-6 max-w-xl text-lg text-cream/70">
             From the first sketch to the last lampshade — trusted craftsmen, certified vendors,
@@ -247,7 +247,7 @@ export function Services() {
           </p>
         </motion.div>
 
-        <div className="grid gap-px overflow-hidden rounded-sm border border-cream/15 bg-cream/15 md:grid-cols-3">
+        <div className="grid gap-px overflow-hidden rounded-sm border border-black/20 bg-cream/15 md:grid-cols-3">
           {services.map((s, i) => (
             <motion.div
               key={s.n}
@@ -255,11 +255,11 @@ export function Services() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.8, delay: i * 0.1 }}
-              className="border-b border-cream/15 bg-forest/40 p-8 md:border-b-0 md:border-r last:border-r-0"
+              className="border-b border-black/25 bg-cream/5 p-8 md:border-b-1 y md:border-r last:border-r-0"
             >
-              <div className="font-display text-7xl leading-tight text-cream/20">{s.n}</div>
-              <h3 className="mt-6 font-display text-2xl text-cream">{s.t}</h3>
-              <p className="mt-3 leading-relaxed text-cream/70">{s.d}</p>
+              <div className="font-display text-7xl leading-tight text-cream/40">{s.n}</div>
+              <h3 className="mt-6 font-display text-2xl text-cream/95">{s.t}</h3>
+              <p className="mt-3 leading-relaxed text-cream/80">{s.d}</p>
             </motion.div>
           ))}
         </div>
@@ -267,7 +267,6 @@ export function Services() {
     </section>
   );
 }
-
 
 /* -------------------- Why -------------------- */
 const why = [
@@ -402,8 +401,10 @@ export function Contact() {
 
           <div className="mt-12 space-y-6 rounded-[2rem] border border-border bg-card p-8 shadow-sm">
             <div>
-              <p className="text-[10px] uppercase tracking-[0.3em] text-ink/60">Studio</p>
-              <p className="mt-2 text-ink/85">102, Capital Crown, Near Raysan Metro Station, Raysan, Gandhinagar</p>
+              <p className="text-[10px] uppercase tracking-[0.3em] text-ink/60">Office</p>
+              <p className="mt-2 text-ink/85">
+                102, Capital Crown, Near Raysan Metro Station, Raysan, Gandhinagar
+              </p>
             </div>
             <div>
               <p className="text-[10px] uppercase tracking-[0.3em] text-ink/60">Email</p>
@@ -476,4 +477,3 @@ export function Contact() {
     </section>
   );
 }
-

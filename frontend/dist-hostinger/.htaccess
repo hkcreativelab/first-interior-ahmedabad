@@ -3,8 +3,10 @@ Options -Indexes
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
-  RewriteRule ^api/reels$ https://first-interior.vercel.app/api/reels [R=307,L,QSA]
-  RewriteRule ^api/reel-poster$ https://first-interior.vercel.app/api/reel-poster [R=307,L,QSA]
+  RewriteRule ^api/videos$ https://first-interior.vercel.app/api/videos [R=307,L,QSA]
+  RewriteRule ^api/video-poster$ https://first-interior.vercel.app/api/video-poster [R=307,L,QSA]
+  RewriteRule ^api/owner-login$ https://first-interior.vercel.app/api/owner-login [R=307,L,QSA]
+  RewriteRule ^api/owner-users$ https://first-interior.vercel.app/api/owner-users [R=307,L,QSA]
   RewriteRule ^index\.html$ - [L]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d

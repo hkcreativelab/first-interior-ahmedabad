@@ -1,6 +1,6 @@
 import { get, put } from "@vercel/blob";
 
-type Reel = {
+type Video = {
   id: string;
   title: string;
   description: string;
@@ -22,8 +22,8 @@ type NodeResponse = {
   end?: (chunk?: string) => void;
 };
 
-const REELS_BLOB_PATH = "reels/reels.json";
-const removedDefaultReelIds = new Set([
+const VIDEOS_BLOB_PATH = "reels/reels.json";
+const removedDefaultVideoIds = new Set([
   "luxury-kitchen-tour",
   "elegant-lounge-space",
   "minimalist-bedroom-tour",
@@ -45,70 +45,70 @@ function setCorsHeaders(response?: NodeResponse) {
   });
 }
 
-function normalizeReels(input: unknown): Reel[] {
+function normalizeVideos(input: unknown): Video[] {
   if (!Array.isArray(input)) {
     return [];
   }
 
   return input
-    .filter((item): item is Reel => {
+    .filter((item): item is Video => {
       if (!item || typeof item !== "object") return false;
-      const reel = item as Reel;
+      const video = item as Video;
       return (
-        typeof reel.id === "string" &&
-        !removedDefaultReelIds.has(reel.id) &&
-        typeof reel.title === "string" &&
-        typeof reel.description === "string" &&
-        typeof reel.url === "string"
+        typeof video.id === "string" &&
+        !removedDefaultVideoIds.has(video.id) &&
+        typeof video.title === "string" &&
+        typeof video.description === "string" &&
+        typeof video.url === "string"
       );
     })
-    .map((reel) => ({
-      id: reel.id,
-      title: reel.title,
-      description: reel.description,
-      url: reel.url,
+    .map((video) => ({
+      id: video.id,
+      title: video.title,
+      description: video.description,
+      url: video.url,
       thumbnail:
-        typeof reel.thumbnail === "string" && !reel.thumbnail.startsWith("data:")
-          ? reel.thumbnail
+        typeof video.thumbnail === "string" && !video.thumbnail.startsWith("data:")
+          ? video.thumbnail
           : undefined,
-      views: typeof reel.views === "string" ? reel.views : "0",
-      comments: typeof reel.comments === "string" ? reel.comments : "0",
+      views: typeof video.views === "string" ? video.views : "0",
+      comments: typeof video.comments === "string" ? video.comments : "0",
     }))
     .slice(0, 4);
 }
 
-async function readStoredReels(): Promise<Reel[]> {
+async function readStoredVideos(): Promise<Video[]> {
   const token = getBlobToken();
   if (!token) {
     throw new Error("BLOB_READ_WRITE_TOKEN is missing");
   }
 
   try {
-    const result = await get(REELS_BLOB_PATH, {
+    const result = await get(VIDEOS_BLOB_PATH, {
       access: "public",
       token,
     });
 
     if (result?.statusCode === 200 && result.stream) {
       const parsed = (await new Response(result.stream).json()) as unknown;
-      return normalizeReels(parsed);
+      return normalizeVideos(parsed);
     }
   } catch (error) {
-    console.error("Failed to read reels blob", error);
+    console.error("Failed to read videos blob", error);
   }
 
   return [];
 }
 
-async function writeStoredReels(reels: unknown): Promise<Reel[]> {
+async function writeStoredVideos(videos: unknown): Promise<Video[]> {
   const token = getBlobToken();
   if (!token) {
     throw new Error("BLOB_READ_WRITE_TOKEN is missing");
   }
 
-  const normalizedReels = normalizeReels(reels);
+  const normalizedVideos = normalizeVideos(videos);
 
-  await put(REELS_BLOB_PATH, JSON.stringify(normalizedReels), {
+  await put(VIDEOS_BLOB_PATH, JSON.stringify(normalizedVideos), {
     access: "public",
     contentType: "application/json",
     addRandomSuffix: false,
@@ -117,7 +117,7 @@ async function writeStoredReels(reels: unknown): Promise<Reel[]> {
     token,
   });
 
-  return normalizedReels;
+  return normalizedVideos;
 }
 
 async function readJsonBody(request: NodeRequest): Promise<unknown> {
@@ -163,12 +163,12 @@ export default async function handler(request: NodeRequest, response?: NodeRespo
     }
 
     if (request.method === "GET") {
-      const reels = await readStoredReels();
+      const videos = await readStoredVideos();
       if (response) {
-        sendJson(response, 200, reels);
+        sendJson(response, 200, videos);
         return;
       }
-      return new Response(JSON.stringify(reels), {
+      return new Response(JSON.stringify(videos), {
         status: 200,
         headers: {
           ...corsHeaders,
@@ -179,12 +179,12 @@ export default async function handler(request: NodeRequest, response?: NodeRespo
     }
 
     if (request.method === "POST") {
-      const savedReels = await writeStoredReels(await readJsonBody(request));
+      const savedVideos = await writeStoredVideos(await readJsonBody(request));
       if (response) {
-        sendJson(response, 200, savedReels);
+        sendJson(response, 200, savedVideos);
         return;
       }
-      return new Response(JSON.stringify(savedReels), {
+      return new Response(JSON.stringify(savedVideos), {
         status: 200,
         headers: {
           ...corsHeaders,
@@ -208,9 +208,9 @@ export default async function handler(request: NodeRequest, response?: NodeRespo
       headers: { ...corsHeaders, Allow: "GET, POST" },
     });
   } catch (error) {
-    console.error("Reels API failed", error);
+    console.error("Videos API failed", error);
     const errorBody = {
-      error: request.method === "POST" ? "Could not save reels" : "Could not load reels",
+      error: request.method === "POST" ? "Could not save videos" : "Could not load videos",
     };
 
     if (response) {

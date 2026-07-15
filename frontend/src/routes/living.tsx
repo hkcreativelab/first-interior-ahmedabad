@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { RoomPage } from "@/components/RoomPage";
 // import livingWarm from "@/assets/living-warm.webp";
 import livingMinimal from "@/assets/living-minimal.webp";
-import livingLuxe from "@/assets/living-luxe.webp";
 // import livingRoom from "@/assets/living-room.webp";
 import livingRoomJpg from "@/assets/living-room.jpg";
 import livingRoom1 from "@/assets/living room 1.jpeg";
@@ -71,7 +70,7 @@ function LivingPage() {
         {
           id: "minimal-stone",
           title: "Minimal Stone",
-          img: livingMinimal,
+          img: "/images/living-room-user.jpg",
           style: "Minimal",
           blurb:
             "Marble fireplace feature wall, low-slung grey sofas, oak flooring and a single statement artwork — calm, gallery-like, easy to live in.",
@@ -80,21 +79,6 @@ function LivingPage() {
             "Low-profile modular sofas",
             "Engineered oak flooring",
             "Curated single statement art piece",
-          ],
-          priceFrom: "",
-        },
-        {
-          id: "dark-luxe",
-          title: "Dark Luxe",
-          img: livingLuxe,
-          style: "Statement",
-          blurb:
-            "Walnut panelling, an emerald velvet chesterfield, brass task lamps and a moody palette — a lounge built for evenings, whisky and conversation.",
-          features: [
-            "Full-height walnut wall panelling",
-            "Velvet tufted chesterfield",
-            "Brass swing-arm floor + task lamps",
-            "Marble side tables + custom rug",
           ],
           priceFrom: "",
         },

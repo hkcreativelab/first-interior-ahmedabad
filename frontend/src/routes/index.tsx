@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { Nav } from "@/components/Nav";
 import { Hero } from "@/components/Hero";
 import { Gallery, Services, Why, Reviews, Contact } from "@/components/Sections";
-import { ReelsSection } from "@/components/ReelsSection";
+import { VideoSection } from "@/components/VideoSection";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -43,7 +43,7 @@ function Index() {
       <Hero />
       <Gallery />
       <Services />
-      <ReelsSection />
+      <VideoSection />
       <Why />
       <Reviews />
       <Contact />

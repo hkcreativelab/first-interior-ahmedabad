@@ -1,5 +1,5 @@
 // @ts-ignore - Vercel builds the server bundle before this function runs.
-import server from "../dist/server/server.js";
+import server from "../../frontend/dist/server/server.js";
 
 type VercelHandlerContext = {
   params?: Record<string, string | string[]>;

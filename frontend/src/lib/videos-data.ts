@@ -2,7 +2,7 @@ import kitchen from "@/assets/kitchen.webp";
 import livingRoom from "@/assets/living-room.webp";
 import bedroom from "@/assets/bedroom.webp";
 
-export type Reel = {
+export type Video = {
   id: string;
   title: string;
   description: string;
@@ -12,12 +12,12 @@ export type Reel = {
   comments: string;
 };
 
-export const defaultReels: Reel[] = [
+export const defaultVideos: Video[] = [
   {
     id: "luxury-kitchen-tour",
     title: "Luxury Kitchen Tour",
     description: "A warm, inviting kitchen with brass accents and premium finishes.",
-    url: "https://www.instagram.com/reel/sample-1",
+    url: "https://www.example.com/video/sample-1",
     thumbnail: kitchen,
     views: "4.8k",
     comments: "134",
@@ -26,7 +26,7 @@ export const defaultReels: Reel[] = [
     id: "elegant-lounge-space",
     title: "Elegant Lounge Space",
     description: "A calm lounge with layered textures, curated art and natural light.",
-    url: "https://www.instagram.com/reel/sample-2",
+    url: "https://www.example.com/video/sample-2",
     thumbnail: livingRoom,
     views: "3.2k",
     comments: "92",
@@ -35,47 +35,47 @@ export const defaultReels: Reel[] = [
     id: "minimalist-bedroom-tour",
     title: "Minimalist Bedroom Tour",
     description: "A soft bedroom retreat defined by neutral tones and gentle proportions.",
-    url: "https://www.instagram.com/reel/sample-3",
+    url: "https://www.example.com/video/sample-3",
     thumbnail: bedroom,
     views: "6.1k",
     comments: "215",
   },
 ];
 
-export const REELS_BLOB_PATH = "reels/reels.json";
+export const VIDEOS_BLOB_PATH = "reels/reels.json";
 
-const removedDefaultReelIds = new Set([
+const removedDefaultVideoIds = new Set([
   "luxury-kitchen-tour",
   "elegant-lounge-space",
   "minimalist-bedroom-tour",
 ]);
 
-export function sanitizeReels(input: unknown, maxItems = 4): Reel[] {
+export function sanitizeVideos(input: unknown, maxItems = Number.MAX_SAFE_INTEGER): Video[] {
   if (!Array.isArray(input)) return [];
 
   return input
-    .filter((item): item is Reel => {
+    .filter((item): item is Video => {
       if (!item || typeof item !== "object") return false;
-      const reel = item as Reel;
+      const video = item as Video;
       return (
-        typeof reel.id === "string" &&
-        !removedDefaultReelIds.has(reel.id) &&
-        typeof reel.title === "string" &&
-        typeof reel.description === "string" &&
-        typeof reel.url === "string"
+        typeof video.id === "string" &&
+        !removedDefaultVideoIds.has(video.id) &&
+        typeof video.title === "string" &&
+        typeof video.description === "string" &&
+        typeof video.url === "string"
       );
     })
-    .map((reel) => ({
-      id: reel.id,
-      title: reel.title,
-      description: reel.description,
-      url: reel.url,
+    .map((video) => ({
+      id: video.id,
+      title: video.title,
+      description: video.description,
+      url: video.url,
       thumbnail:
-        typeof reel.thumbnail === "string" && !reel.thumbnail.startsWith("data:")
-          ? reel.thumbnail
+        typeof video.thumbnail === "string" && !video.thumbnail.startsWith("data:")
+          ? video.thumbnail
           : undefined,
-      views: typeof reel.views === "string" ? reel.views : "0",
-      comments: typeof reel.comments === "string" ? reel.comments : "0",
+      views: typeof video.views === "string" ? video.views : "0",
+      comments: typeof video.comments === "string" ? video.comments : "0",
     }))
     .slice(0, maxItems);
 }
