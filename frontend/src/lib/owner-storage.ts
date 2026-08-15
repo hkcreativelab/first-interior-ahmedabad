@@ -6,15 +6,12 @@ import { sanitizeVideos, type Video } from "@/lib/videos-data";
 const VIDEOS_STORAGE_KEY = "first-interiors-owner-videos";
 const OWNER_AUTH_STORAGE_KEY = "first-interiors-owner-auth";
 
-export const OWNER_USERNAME = "owner";
-export const OWNER_PASSWORD = "owner240";
-
 const fallbackVideos: Video[] = [
   {
     id: "hostinger-kitchen-tour",
     title: "Luxury Kitchen Tour",
     description: "A warm, inviting kitchen with brass accents and premium finishes.",
-    url: "https://www.example.com/video/sample-1",
+    url: "/videos/video-1.mp4",
     thumbnail: kitchen,
     views: "4.8k",
     comments: "134",
@@ -23,7 +20,7 @@ const fallbackVideos: Video[] = [
     id: "hostinger-lounge-space",
     title: "Elegant Lounge Space",
     description: "A calm lounge with layered textures, curated art and natural light.",
-    url: "https://www.example.com/video/sample-2",
+    url: "/videos/video-2.mp4",
     thumbnail: livingRoom,
     views: "3.2k",
     comments: "92",
@@ -32,7 +29,7 @@ const fallbackVideos: Video[] = [
     id: "hostinger-bedroom-tour",
     title: "Minimalist Bedroom Tour",
     description: "A soft bedroom retreat defined by neutral tones and gentle proportions.",
-    url: "https://www.example.com/video/sample-3",
+    url: "/videos/video-2.mp4",
     thumbnail: bedroom,
     views: "6.1k",
     comments: "215",
@@ -95,6 +92,6 @@ export function setOwnerAuthenticated(value: boolean) {
   window.sessionStorage.removeItem(OWNER_AUTH_STORAGE_KEY);
 }
 
-export function validateOwnerCredentials(username: string, password: string) {
-  return username.trim().toLowerCase() === OWNER_USERNAME && password.trim() === OWNER_PASSWORD;
-}
+// NOTE: Credential validation is handled server-side. Do not store or check owner
+// credentials in the frontend. This file only manages local persistence and
+// fallback video storage.

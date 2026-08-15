@@ -6,6 +6,8 @@ import livingMinimal from "@/assets/living-minimal.webp";
 import livingRoomJpg from "@/assets/living-room.jpg";
 import livingRoom1 from "@/assets/living room 1.jpeg";
 import livingRoom2 from "@/assets/living room 2.png";
+import livingMinimalStone from "@/assets/living-minimal-stone.jpeg";
+import diningOpenPlan from "@/assets/dining-open-plan.jpeg";
 
 export const Route = createFileRoute("/living")({
   head: () => ({
@@ -70,7 +72,7 @@ function LivingPage() {
         {
           id: "minimal-stone",
           title: "Minimal Stone",
-          img: "/images/living-room-user.jpg",
+          img: diningOpenPlan,
           style: "Minimal",
           blurb:
             "Marble fireplace feature wall, low-slung grey sofas, oak flooring and a single statement artwork — calm, gallery-like, easy to live in.",

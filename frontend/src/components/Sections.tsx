@@ -378,7 +378,10 @@ export function Contact() {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const whatsappUrl = buildWhatsAppUrl(formData);
-    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+    const whatsappWindow = window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+    if (!whatsappWindow) {
+      window.location.assign(whatsappUrl);
+    }
   }
 
   return (

@@ -1,0 +1,43 @@
+name: Build and Deploy Frontend to Hostinger
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    name: Build frontend and deploy to Hostinger
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: ./frontend
+        env:
+          VITE_BACKEND_URL: ${{ secrets.FRONTEND_BACKEND_URL }}
+        run: npm run build:hostinger
+
+      - name: Deploy to Hostinger via FTP
+        uses: SamKirkland/FTP-Deploy-Action@4.4.0
+        with:
+          server: ${{ secrets.HOSTINGER_FTP_HOST }}
+          username: ${{ secrets.HOSTINGER_FTP_USER }}
+          password: ${{ secrets.HOSTINGER_FTP_PASS }}
+          local-dir: frontend/dist-hostinger
+          server-dir: ${{ secrets.HOSTINGER_FTP_REMOTE_PATH }}
+          protocol: ftp
+          debug: true
+
+      - name: Success message
+        run: echo "Frontend built and deployed to Hostinger"

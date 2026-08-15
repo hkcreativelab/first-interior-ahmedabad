@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { Heart, MessageCircle, Play } from "lucide-react";
+import { Heart, MessageCircle } from "lucide-react";
 import { type Video } from "@/lib/videos-data";
 import { getApiUrl, isRemoteApiAvailable } from "@/lib/api-base";
 import { getStoredVideos } from "@/lib/owner-storage";
@@ -52,7 +52,10 @@ export function VideoSection({
     };
   }, []);
 
-  const visibleVideos = videos?.slice(0, maxItems) ?? [];
+  const uniqueVideos = videos
+    ? Array.from(new Map(videos.map((video) => [video.url, video])).values())
+    : [];
+  const visibleVideos = uniqueVideos.slice(0, maxItems);
 
   return (
     <section id="videos" className="bg-cream py-24 text-ink">
@@ -83,44 +86,14 @@ export function VideoSection({
                 className="group overflow-hidden rounded-[2rem] bg-ink text-cream shadow-[0_30px_80px_-40px_rgba(15,23,42,0.55)]"
               >
                 <div className="relative overflow-hidden pb-[140%] sm:pb-[120%]">
-                  <img
-                    src={video.thumbnail || placeholderThumbnail}
-                    alt={video.title}
+                  <video
+                    controls
+                    playsInline
+                    preload="metadata"
+                    poster={video.thumbnail || placeholderThumbnail}
+                    src={video.url}
                     className="absolute inset-0 h-full w-full object-cover transition-transform duration-[1.4s] ease-out group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/20 to-transparent" />
-                  <a
-                    href={video.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="absolute inset-0 flex items-center justify-center"
-                  >
-                    <span className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-cream/90 text-ink transition hover:scale-110">
-                      <Play className="h-6 w-6" />
-                    </span>
-                  </a>
-                </div>
-
-                <div className="space-y-4 p-6 sm:p-8">
-                  <div>
-                    <h3 className="text-3xl font-semibold tracking-tight text-cream">
-                      {video.title}
-                    </h3>
-                    <p className="mt-2 text-base leading-relaxed text-cream/90">
-                      {video.description}
-                    </p>
-                  </div>
-
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="inline-flex items-center gap-2 rounded-3xl bg-ink/80 px-4 py-3 text-base text-cream">
-                      <Heart className="h-4 w-4 text-red-400" />
-                      <span>{video.views}</span>
-                    </div>
-                    <div className="inline-flex items-center gap-2 rounded-3xl bg-ink/80 px-4 py-3 text-base text-cream">
-                      <MessageCircle className="h-4 w-4 text-cream/70" />
-                      <span>{video.comments}</span>
-                    </div>
-                  </div>
                 </div>
               </motion.article>
             ))}
@@ -134,8 +107,7 @@ export function VideoSection({
         {showCta && (
           <div className="mt-12 flex flex-col items-center gap-4 text-center sm:flex-row sm:justify-between sm:text-left">
             <p className="max-w-2xl text-base text-ink/70">
-              Want to explore every video? Visit the owner portal to add new videos or see the full
-              collection.
+              Want to explore every video? See the full collection here.
             </p>
             <div className="flex flex-wrap justify-center gap-3">
               <Link
@@ -143,12 +115,6 @@ export function VideoSection({
                 className="rounded-full border border-forest bg-forest px-6 py-3 text-base font-semibold text-cream transition hover:bg-ink"
               >
                 View all videos
-              </Link>
-              <Link
-                to="/owner"
-                className="rounded-full border border-ink bg-transparent px-6 py-3 text-base font-semibold text-ink transition hover:bg-forest hover:text-cream"
-              >
-                Owner portal
               </Link>
             </div>
           </div>

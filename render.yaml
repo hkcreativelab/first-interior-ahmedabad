@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: first-interior-backend
+    env: node
+    plan: free
+    root: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: SUPABASE_URL
+        value: "<your-supabase-url>"
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        value: "<your-supabase-service-role-key>"
+      - key: SUPABASE_POSTER_BUCKET
+        value: "posters"
+      - key: PORT
+        value: "3000"

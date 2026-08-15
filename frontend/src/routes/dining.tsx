@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { RoomPage } from "@/components/RoomPage";
-import diningClassic from "@/assets/dining.webp";
 import diningElegant from "@/assets/dining-elegant.webp";
+import diningOpenPlan from "@/assets/dining-open-plan.jpeg";
+import livingMinimalStone from "@/assets/living-minimal-stone.jpeg";
 // import diningModern from "@/assets/dining-modern.webp";
 import livingRoom1 from "@/assets/living room 1.jpeg";
 import dining1 from "@/assets/dining 1.png";
@@ -70,7 +71,7 @@ function DiningPage() {
         {
           id: "open-plan",
           title: "Open-Plan Loft",
-          img: diningClassic,
+          img: livingMinimalStone,
           style: "Open-plan",
           blurb:
             "Flows between kitchen and living — long pine table, mixed chairs, layered pendant cluster and a rug to anchor the space.",

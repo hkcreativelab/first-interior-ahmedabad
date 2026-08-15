@@ -2,14 +2,13 @@ import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "
 import { createFileRoute } from "@tanstack/react-router";
 import { Footer } from "@/components/Footer";
 import { Nav } from "@/components/Nav";
-import { getApiUrl } from "@/lib/api-base";
+import { getApiUrl, isRemoteApiAvailable } from "@/lib/api-base";
 import { sanitizeVideos, type Video } from "@/lib/videos-data";
 import {
   getStoredVideos,
   isOwnerAuthenticated,
   saveStoredVideos,
   setOwnerAuthenticated,
-  validateOwnerCredentials,
 } from "@/lib/owner-storage";
 
 export const Route = createFileRoute("/owner")({
@@ -155,16 +154,7 @@ function OwnerPortalPage() {
 
     try {
       if (!isRemoteApiAvailable()) {
-        if (!validateOwnerCredentials(usernameInput, passwordInput)) {
-          setMessage("Invalid credentials. Please try again.");
-          return;
-        }
-
-        setIsAuthenticated(true);
-        setOwnerAuthenticated(true);
-        setMessage("Access granted. You can add or delete videos now.");
-        setUsernameInput("");
-        setPasswordInput("");
+        setMessage("Owner login requires the backend. Start the backend or deploy it and try again.");
         return;
       }
 
@@ -282,7 +272,6 @@ function OwnerPortalPage() {
     setMessage("Video deleted.");
   };
 
-
   return (
     <div className="relative min-h-screen bg-background text-ink">
       <Nav />
@@ -296,8 +285,8 @@ function OwnerPortalPage() {
                 Secure admin access
               </h1>
               <p className="mt-3 sm:mt-4 md:mt-5 text-xs sm:text-sm leading-relaxed text-sand/80">
-                This portal is reserved for the First Interiors team. Sign in to manage the public video
-                collection and keep content fresh.
+                This portal is reserved for the First Interiors team. Sign in to manage the public
+                video collection and keep content fresh.
               </p>
               <div className="mt-6 sm:mt-7 md:mt-8 rounded-lg sm:rounded-xl md:rounded-[1.5rem] bg-ink/10 p-4 sm:p-5 md:p-6 text-xs sm:text-sm text-cream/80">
                 <p className="font-semibold text-cream text-sm sm:text-base">Portal features</p>

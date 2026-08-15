@@ -14,31 +14,24 @@ export type Video = {
 
 export const defaultVideos: Video[] = [
   {
-    id: "luxury-kitchen-tour",
-    title: "Luxury Kitchen Tour",
-    description: "A warm, inviting kitchen with brass accents and premium finishes.",
-    url: "https://www.example.com/video/sample-1",
+    id: "purchased-tour-1",
+    title: "Project Walkthrough 1",
+    description:
+      "A walkthrough of the recently completed living and dining interiors, showing spatial flow and finish details.",
+    url: "/videos/video-1.mp4",
     thumbnail: kitchen,
-    views: "4.8k",
-    comments: "134",
+    views: "1.2k",
+    comments: "18",
   },
   {
-    id: "elegant-lounge-space",
-    title: "Elegant Lounge Space",
-    description: "A calm lounge with layered textures, curated art and natural light.",
-    url: "https://www.example.com/video/sample-2",
+    id: "purchased-tour-2",
+    title: "Project Walkthrough 2",
+    description:
+      "A second view of the completed villa interiors, highlighting material texture and ambient lighting.",
+    url: "/videos/video-2.mp4",
     thumbnail: livingRoom,
-    views: "3.2k",
-    comments: "92",
-  },
-  {
-    id: "minimalist-bedroom-tour",
-    title: "Minimalist Bedroom Tour",
-    description: "A soft bedroom retreat defined by neutral tones and gentle proportions.",
-    url: "https://www.example.com/video/sample-3",
-    thumbnail: bedroom,
-    views: "6.1k",
-    comments: "215",
+    views: "870",
+    comments: "11",
   },
 ];
 

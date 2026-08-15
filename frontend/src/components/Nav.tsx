@@ -12,7 +12,6 @@ const rooms = [
 const pageLinks = [
   { to: "/about", label: "About" },
   { to: "/reels", label: "Videos" },
-  { to: "/owner", label: "Owner" },
 ] as const;
 
 const sectionLinks = [

@@ -30,8 +30,8 @@ function VideosPage() {
             </h1>
           </div>
           <p className="text-lg leading-relaxed text-ink/70">
-            Our videos show the tone, textures and daily life of real projects. Use the owner portal
-            to add or update media directly.
+            Our videos show the tone, textures and daily life of real projects. Browse the full
+            collection for more inspiration.
           </p>
         </section>
         <VideoSection maxItems={100} showCta={false} />

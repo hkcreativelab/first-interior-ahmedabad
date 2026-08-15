@@ -1,20 +1,10 @@
-import { isHostingerDomain } from "./hostinger-links";
-
-const VERCEL_API_ORIGIN = "https://first-interior.vercel.app";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? "http://localhost:3000";
 
 export function getApiUrl(path: string) {
-  if (typeof window === "undefined") {
-    return path;
-  }
-
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
-  return isHostingerDomain() ? `${VERCEL_API_ORIGIN}${normalizedPath}` : normalizedPath;
+  return `${BACKEND_URL}${normalizedPath}`;
 }
 
 export function isRemoteApiAvailable() {
-  if (typeof window === "undefined") {
-    return false;
-  }
-
-  return window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1";
+  return BACKEND_URL !== "http://localhost:3000";
 }

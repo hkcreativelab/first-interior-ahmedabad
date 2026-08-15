@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Instagram } from "lucide-react";
 import { getSectionHref } from "@/lib/hostinger-links";
+import { ContactForm } from "./ContactForm";
 
 export function Footer() {
   return (
@@ -30,11 +31,6 @@ export function Footer() {
               <li>
                 <Link to="/reels" className="hover:text-sand transition-colors">
                   Videos
-                </Link>
-              </li>
-              <li>
-                <Link to="/owner" className="hover:text-sand transition-colors">
-                  Owner portal
                 </Link>
               </li>
               <li>
@@ -83,6 +79,12 @@ export function Footer() {
                   <Instagram className="h-4 w-4" />
                   <span>firstinteriors_</span>
                 </a>
+              </div>
+              <div>
+                <p className="font-medium text-cream">Message us</p>
+                <div className="mt-3">
+                  <ContactForm phone="+919998408599" />
+                </div>
               </div>
             </div>
           </div>
